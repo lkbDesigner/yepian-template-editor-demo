@@ -1,29 +1,59 @@
-# 页间 · 模板编辑器原型
+# 页间 · 模板编辑器
 
-一个纯静态 HTML 原型，演示“浏览模板 → 选择模板 → 编辑空白模块 → 保存页面”的流程。
+浏览模板 → 选择模板 → 编辑空白模块 → 保存到站点所有者的 GitHub 仓库。
 
-## 当前功能
+网站地址：https://lkbdesigner.github.io/yepian-template-editor-demo/
 
-- Sunday Studio 模板展示六个模块：首屏、精选内容、品牌故事、特点与价值、资料下载、联系信息。
-- 选择模板后进入结构一致的空白编辑器，内容输入后即时预览。
-- 模块支持图片上传，资料下载模块支持 PDF；草稿和文件保存在当前浏览器。
-- “保存修改”在未连接仓库时保存本机草稿；可导出 JSON。
-- 连接 GitHub 后，保存会把独立页面、内容 JSON 和素材提交到仓库的 `user-sites/<site-id>/`。
+## 访客体验
 
-## GitHub 保存
+- 模板与编辑页包含六个对应模块：首屏、精选内容、品牌故事、特点与价值、资料下载、联系信息。
+- 输入后即时预览，支持 PNG、JPEG、GIF、WebP 图片和 PDF。
+- 访客无需填写仓库、登录 GitHub 或提供 GitHub 令牌。
+- 页面与素材统一保存到 `lkbDesigner/yepian-template-editor-demo`。
+- 每个浏览器草稿有独立编号和编辑凭据；编辑凭据保留在本机，仓库仅存 SHA-256 摘要。
+- 本机草稿保存在 LocalStorage，文件保存在 IndexedDB。换设备或清除浏览器数据后无法继续编辑原页面。
+- 仓库和生成页面公开，请只提交可公开的内容。
 
-页面通过 GitHub REST API 从浏览器直接创建仓库提交。连接时只需要一个 Fine-grained personal access token：
+## 保存服务
 
-1. 在 GitHub 的 **Settings → Developer settings → Personal access tokens → Fine-grained tokens** 创建令牌。
-2. Repository access 只选目标仓库。
-3. Repository permissions 只授予 **Contents: Read and write**。
-4. 在编辑器点“连接 GitHub”，填入用户名、仓库名、分支和令牌。
+GitHub Pages 负责前端。共享接口 `server/save-worker.mjs` 固定写入站点仓库。当前本机模式通过 `gh` 转发 GitHub API；长期云端部署则使用服务端秘密环境变量 `GITHUB_TOKEN`。
 
-令牌仅保存在页面内存中，不会写入 LocalStorage、草稿、HTML 或 GitHub 仓库。关闭或刷新页面后，需要重新输入令牌。测试时建议创建仅对此项目仓库授权、并设置较短有效期的令牌。页面脚本会在内存中使用令牌，因此正式产品建议改用服务端 OAuth。若目标仓库是公开仓库，保存的网页内容与上传文件也会公开。
+服务地址通过 `site-config.json` 的 `saveServiceUrl` 配置。当前为免注册 Cloudflare Quick Tunnel 测试模式：本机 `node server/local-server.mjs` 提供接口，`cloudflared` 将接口临时公开；使用本机已登录的 gh CLI 完成仓库写入，不提取或分发 GitHub 令牌。电脑、保存进程和通道必须保持运行。通道重启会更换地址，需要同步更新配置。
 
-保存成功后，仓库会出现 `user-sites/<site-id>/index.html`、`site.json` 和 `assets/`。如果目标仓库已启用 GitHub Pages，可在 Pages 完成部署后通过仓库 Pages 地址访问生成页面。
+- `GET /api/status` 返回配置状态，不返回密钥。
+- `POST /api/save` 接收字段和文件。访客的 Bearer 凭据用于保护自己的页面，并不是 GitHub 令牌。
+- 仓库、分支和目录由服务端固定，请求不能指定其他仓库、任意路径或 HTML 代码。
+- 文件类型与签名经过验证，单文件最多 5 MB，总计最多 8 MB。
+- 服务端共享渲染器生成 HTML，对文字转义。
+- 每次保存通过 Git Trees/Commits/Refs API 创建一条原子提交；并发更新会重试，避免覆盖其他提交。
+- 删除的素材在同一次提交中移除。
 
-## 本地预览
+## 长期云端部署时的所有者配置
 
-直接用浏览器打开 `index.html` 即可体验模板和编辑流程。文件上传使用 IndexedDB；不同浏览器或设备之间不会自动同步。
+创建仅授权本仓库的 Fine-grained personal access token，权限为 **Contents: Read and write**。在保存服务的运行时秘密环境变量中设置 `GITHUB_TOKEN`，重新部署以应用。不要放进前端、公开源码或聊天。配置完成前，页面会提示云端待配置，仍保留本机草稿。
 
+服务端源码在本仓库，`wrangler.toml` 可用于 Cloudflare Workers 部署。Sites 打包构建入口也已保留。构建命令：
+
+```sh
+node scripts/bundle-save-worker.mjs /absolute/path/to/service/worker/index.js
+```
+
+API 文档：[Git Trees](https://docs.github.com/en/rest/git/trees)、[Commits](https://docs.github.com/en/rest/git/commits)、[References](https://docs.github.com/en/rest/git/refs)。
+
+## 本地开发与验证
+
+```sh
+python3 -m http.server 8765 --bind 127.0.0.1
+node --test server/save-worker.test.mjs
+```
+
+浏览器打开 `http://127.0.0.1:8765`。前端使用 ES modules，需要通过 HTTP 打开。
+
+## 当前临时测试服务
+
+```sh
+node server/local-server.mjs
+cloudflared tunnel --no-autoupdate --protocol http2 --url http://127.0.0.1:8767
+```
+
+将输出的临时 HTTPS 地址填入 `site-config.json` 后推送到 GitHub。临时服务仅提供 `/api/status` 和 `/api/save`，不托管本机文件或通用 GitHub 代理。关闭时停止这两个进程即可。
