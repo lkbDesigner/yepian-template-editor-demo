@@ -1,11 +1,11 @@
 {
   "template": "sunday-studio",
   "siteId": "e988bd603f1dea7ea7fea771",
-  "updatedAt": "2026-10-28T11:08:21.364Z",
+  "updatedAt": "2026-10-28T11:08:27.513Z",
   "editKeyHash": "13a952ebcbee8ce69050a24993dfaca92b86634718667751cf76756f2d4639d1",
   "fields": {
     "brandName": "共享保存验证",
-    "heroTitle": "访客无需 GitHub 登录即可保存",
+    "heroTitle": "共享保存与再次编辑验证通过",
     "heroDesc": "此示例由公开保存接口自动写入站点仓库，用于验证文字、图片和 PDF 的提交。",
     "heroButton": "",
     "productTitle": "",
@@ -31,12 +31,6 @@
     "email": ""
   },
   "assets": {
-    "heroImage": {
-      "name": "pixel.gif",
-      "type": "image/gif",
-      "size": 42,
-      "path": "assets/heroImage.gif"
-    },
     "resourcePdf": {
       "name": "save-test.pdf",
       "type": "application/pdf",
