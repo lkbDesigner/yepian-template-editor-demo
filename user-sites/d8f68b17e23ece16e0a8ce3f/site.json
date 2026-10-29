@@ -1,0 +1,41 @@
+{
+  "template": "sunday-studio",
+  "siteId": "d8f68b17e23ece16e0a8ce3f",
+  "updatedAt": "2026-10-29T02:47:56.691Z",
+  "editKeyHash": "89e20e4bb4d8cc57f7bb926867c50897c982005348b8514c3840c281cab3c919",
+  "fields": {
+    "brandName": "",
+    "heroTitle": "手机号与找回码恢复验证",
+    "heroDesc": "",
+    "heroButton": "",
+    "productTitle": "",
+    "product1Title": "",
+    "product1Desc": "",
+    "product2Title": "",
+    "product2Desc": "",
+    "product3Title": "",
+    "product3Desc": "",
+    "storyTitle": "",
+    "storyDesc": "",
+    "featureTitle": "",
+    "feature1Title": "",
+    "feature1Desc": "",
+    "feature2Title": "",
+    "feature2Desc": "",
+    "feature3Title": "",
+    "feature3Desc": "",
+    "resourceTitle": "",
+    "resourceDesc": "",
+    "contactTitle": "",
+    "contactDesc": "",
+    "email": ""
+  },
+  "assets": {
+    "resourcePdf": {
+      "name": "check.pdf",
+      "type": "application/pdf",
+      "size": 14,
+      "path": "assets/resourcePdf.pdf"
+    }
+  }
+}
