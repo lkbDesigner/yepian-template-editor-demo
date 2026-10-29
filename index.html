@@ -50,24 +50,16 @@
     let SAVE_SERVICE_URL="";
     let serviceReady=null;
     let isSaving=false;
-    let editKey=localStorage.getItem("yepian-edit-key");
-    if(!/^[a-f0-9]{64}$/.test(editKey||"")){editKey=Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("yepian-edit-key",editKey)}
-    localStorage.removeItem("yepian-github-target");
-    let draft = loadDraft();
-
-    function loadDraft(){
-      try { const saved=JSON.parse(localStorage.getItem("yepian-draft")||"null"); return {fields:{...FIELD_DEFAULTS,...(saved?.fields||{})},assets:saved?.assets||{},siteId:saved?.siteId||makeId()}; }
-      catch { return {fields:{...FIELD_DEFAULTS},assets:{},siteId:makeId()}; }
-    }
-    function makeId(){return Array.from(crypto.getRandomValues(new Uint8Array(12)),b=>b.toString(16).padStart(2,"0")).join("")}
-    function persistDraft(){localStorage.setItem("yepian-draft",JSON.stringify(draft))}
+    let editKey=null, pendingAccount=null;
+    let draft={fields:{...FIELD_DEFAULTS},assets:{},siteId:null};
+    function persistDraft(){} // Editing state stays in memory; saved content is loaded after authentication.
     function esc(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]))}
     function text(value,fallback,showFallback=true){const clean=String(value||"").trim();return clean?esc(clean).replace(/\n/g,"<br>"):showFallback?`<span class="placeholder">${esc(fallback)}</span>`:""}
     function showToast(message){const node=document.getElementById("toast");node.textContent=message;node.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.classList.remove("show"),3500)}
     function dbOpen(){return new Promise((resolve,reject)=>{const request=indexedDB.open(DB_NAME,1);request.onupgradeneeded=()=>request.result.createObjectStore(DB_STORE);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
-    async function dbPut(key,blob){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).put(blob,key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
-    async function dbGet(key){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readonly");const req=tx.objectStore(DB_STORE).get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
-    async function dbDelete(key){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).delete(key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
+    async function dbPut(key,blob){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).put(blob,draft.siteId+":"+key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
+    async function dbGet(key){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readonly");const req=tx.objectStore(DB_STORE).get(draft.siteId+":"+key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+    async function dbDelete(key){const db=await dbOpen();return new Promise((resolve,reject)=>{const tx=db.transaction(DB_STORE,"readwrite");tx.objectStore(DB_STORE).delete(draft.siteId+":"+key);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})}
     async function restoreAssets(){for(const key of ASSET_KEYS){if(draft.assets[key]){try{const blob=await dbGet(key);if(blob)objectUrls[key]=URL.createObjectURL(blob)}catch{}}}if(mode==="editor")render()}
     const TEMPLATE_SITE=renderSite({fields:TEMPLATE,placeholders:false});
     function brand(){return `<div class="brand"><span class="brand-mark">页</span><span>页间 <span style="color:#969a91;font-weight:500">/ studio</span></span></div>`}
@@ -85,13 +77,47 @@
         ${moduleCard("05","资料下载","添加一个 PDF 文件和说明",`<div class="field-grid">${field("资料名称","resourceTitle","例如：品牌手册",true)}${field("资料说明","resourceDesc","告诉访客这份资料是什么",true,true)}<div class="field full"><label>PDF 文件</label>${uploadField("resourcePdf","application/pdf,.pdf","还没有 PDF 文件","仅支持 PDF，单个文件最大 5 MB")}</div></div>`)}
         ${moduleCard("06","联系信息","给访客一个联系你的方式",`<div class="field-grid">${field("模块标题","contactTitle","例如：想和我们聊聊吗？",true)}${field("联系邮箱","email","hello@example.com",true)}${field("补充说明","contactDesc","邀请访客联系你",true,true)}</div>`)}
         <div class="empty-note">填写内容会即时显示在右侧预览中。保存到 GitHub 后，会在仓库 <code>user-sites/</code> 目录生成独立页面和素材文件。</div>`;
-      document.getElementById("app").innerHTML=`<header class="topbar">${brand()}<div class="top-actions"><span class="pill"><i class="dot ${serviceReady?"active":""}"></i>统一保存到站点仓库</span></div></header><main class="shell"><div class="studio-head"><div class="eyebrow">BLANK SITE · TEMPLATE 01</div><div class="head-row"><div><h1>编辑你的页面</h1><p>模块与 Sunday Studio 模板一一对应。填写内容、添加图片或 PDF，右侧会即时预览。</p></div><button class="btn ghost small" data-action="back">← 返回模板</button></div></div><div class="workspace"><div class="module-list">${editor}</div><aside class="editor-preview"><div class="preview-title"><strong>实时页面预览</strong><span>桌面版 · 自动更新</span></div><div class="preview-frame"><div class="web-frame" id="live-preview"></div></div></aside></div></main><div class="bottom-bar"><div class="bottom-copy"><strong>${serviceReady?"云端保存已就绪":"草稿保存在此浏览器"}</strong><small>${serviceReady?"保存后会生成独立网页；内容将公开":"云端保存待管理员配置，编辑内容会保留在本机"}</small></div><div class="bottom-buttons"><button class="btn secondary" data-action="export">导出 JSON</button><button class="btn" data-action="save">保存修改 <span aria-hidden="true">↗</span></button></div></div>`;
+      document.getElementById("app").innerHTML=`<header class="topbar">${brand()}<div class="top-actions"><span class="pill"><i class="dot ${serviceReady?"active":""}"></i>统一保存到站点仓库</span></div></header><main class="shell"><div class="studio-head"><div class="eyebrow">BLANK SITE · TEMPLATE 01</div><div class="head-row"><div><h1>编辑你的页面</h1><p>模块与 Sunday Studio 模板一一对应。填写内容、添加图片或 PDF，右侧会即时预览。</p></div><button class="btn ghost small" data-action="back">← 返回模板</button></div></div><div class="workspace"><div class="module-list">${editor}</div><aside class="editor-preview"><div class="preview-title"><strong>实时页面预览</strong><span>桌面版 · 自动更新</span></div><div class="preview-frame"><div class="web-frame" id="live-preview"></div></div></aside></div></main><div class="bottom-bar"><div class="bottom-copy"><strong>${serviceReady?"云端保存已就绪":"编辑内容尚未保存"}</strong><small>${serviceReady?"保存后会生成独立网页；内容将公开":"云端保存待管理员配置，请保持当前编辑页打开"}</small></div><div class="bottom-buttons"><button class="btn secondary" data-action="export">导出 JSON</button><button class="btn" data-action="save">保存修改 <span aria-hidden="true">↗</span></button></div></div>`;
       renderPreview();
     }
     function renderPreview(){const preview=document.getElementById("live-preview");if(preview)preview.innerHTML=renderSite({fields:draft.fields,assets:draft.assets,urls:objectUrls})}
     function render(){if(mode==="template")renderTemplate();else renderEditor()}
-    function chooseTemplate(){mode="editor";persistDraft();render();window.scrollTo({top:0,behavior:"smooth"})}
-    function setMode(next){mode=next;render();window.scrollTo({top:0,behavior:"smooth"})}
+    function chooseTemplate(){
+      document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">进入我的页面</h2><p>首次使用会生成找回码。之后每次进入编辑，都需要手机号和找回码。手机号仅作账号标识，不发送短信。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码（11 位数字）</label><input id="account-phone" inputmode="numeric" autocomplete="off" maxlength="11" pattern="[0-9]{11}" required placeholder="请输入 11 位手机号码"></div><div class="field"><label for="account-code">找回码（首次使用无需填写）</label><input id="account-code" type="password" autocomplete="off" placeholder="输入之前保存的找回码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="dismiss">取消</button><button type="button" class="btn secondary" id="register-account">首次使用</button><button type="submit" class="btn">继续编辑</button></div></form></section></div>`;
+      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(false)};
+      document.getElementById('register-account').onclick=()=>authenticate(true);
+      document.getElementById('account-phone').focus();
+    }
+    async function authenticate(register){
+      const form=document.getElementById('account-form');if(!form.reportValidity())return;
+      const phone=document.getElementById('account-phone').value,code=document.getElementById('account-code').value;
+      const error=document.getElementById('account-error');
+      if(!/^[0-9]{11}$/.test(phone)){error.textContent='手机号码必须是 11 位数字';return}
+      if(!register&&!code.trim()){error.textContent='请输入找回码；第一次使用请点击「首次使用」';return}
+      form.querySelectorAll('button').forEach(b=>b.disabled=true);
+      try{
+        if(!SAVE_SERVICE_URL)throw Error('登录服务尚未就绪，请稍后重试');
+        const response=await fetch(SAVE_SERVICE_URL+(register?'/api/register':'/api/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,code}),signal:AbortSignal.timeout(120000)});
+        const result=await response.json();if(!response.ok)throw Error(result.error||'登录失败');
+        if(result.recoveryCode){pendingAccount=result;
+          document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>请保存你的找回码</h2><p>下次进入编辑需要手机号和此找回码。请复制保存在安全的地方；本网站不会通过短信发送，也不能自动找回。</p><div class="field"><label>找回码</label><input readonly id="new-recovery-code" value="${esc(result.recoveryCode)}"></div><button class="btn secondary small" data-action="copy-code">复制找回码</button><p id="copy-feedback" role="status"></p><label><input id="code-confirm" type="checkbox"> 我已保存手机号和找回码</label><div class="modal-actions"><button class="btn" data-action="enter-account">进入我的空白模板</button></div></section></div>`;
+        }else await enterAccount(result);
+      }catch(e){error.textContent=e.message;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
+    }
+    async function enterAccount(result){
+      for(const url of Object.values(objectUrls))URL.revokeObjectURL(url);objectUrls={};
+      draft={siteId:result.siteId,fields:{...FIELD_DEFAULTS,...result.fields},assets:{}};
+      for(const asset of result.assets){const blob=new Blob([Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0))],{type:asset.type});await dbPut(asset.key,blob);draft.assets[asset.key]={name:asset.name,type:asset.type,size:blob.size};objectUrls[asset.key]=URL.createObjectURL(blob)}
+      editKey=result.token;pendingAccount=null;mode='editor';history.replaceState(null,'','#edit/'+result.siteId);
+      document.getElementById('modal-root').innerHTML='';render();window.scrollTo(0,0);
+    }
+    function setMode(next){
+      if(isSaving){showToast('正在保存，请稍候');return}
+      if(mode==='editor'&&!confirm('返回模板将退出编辑。请确认已保存修改，下次进入需要重新验证。'))return;
+      if(editKey)fetch(SAVE_SERVICE_URL+'/api/logout',{method:'POST',headers:{Authorization:`Bearer ${editKey}`}}).catch(()=>{});
+      editKey=null;draft={fields:{...FIELD_DEFAULTS},assets:{},siteId:null};for(const url of Object.values(objectUrls))URL.revokeObjectURL(url);objectUrls={};
+      history.replaceState(null,'',location.pathname);mode=next;render();window.scrollTo(0,0);
+    }
     function download(name,content,type="application/json"){const blob=new Blob([content],{type});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}
     async function exportDraft(){const assets={};for(const key of ASSET_KEYS){if(!draft.assets[key])continue;const blob=await dbGet(key);if(blob)assets[key]={name:draft.assets[key].name,type:blob.type,data:await blobToBase64(blob)}}download("yepian-site-draft.json",JSON.stringify({template:"sunday-studio",siteId:draft.siteId,fields:draft.fields,assets},null,2));showToast("编辑内容已导出为 JSON")}
     async function blobToBase64(blob){const bytes=new Uint8Array(await blob.arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return btoa(binary)}
@@ -112,14 +138,15 @@
         if(!response.ok)throw new Error(result.error||"云端暂时无法保存，请稍后重试");
         serviceReady=true;
         document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop" data-action="dismiss"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="saved-heading"><h2 id="saved-heading">已保存到站点仓库</h2><p>文字、图片和 PDF 已一并提交。网页公开链接会在 Pages 发布完成后生效，通常需稍等片刻。</p><div class="modal-actions"><a class="btn secondary small" href="${esc(result.commitUrl)}" target="_blank" rel="noreferrer">查看保存记录</a><a class="btn small" href="${esc(result.url)}" target="_blank" rel="noreferrer">打开我的页面 ↗</a><button class="btn ghost small" data-action="close-result">关闭</button></div></section></div>`;
-      }catch(error){showToast(`${error.name==="TimeoutError"?"保存耗时较长，请稍后重试":error.message}。本机草稿已保留`)}
+      }catch(error){showToast(`${error.name==="TimeoutError"?"保存耗时较长，请稍后重试":error.message}。请保持当前页面打开后重试`)}
       finally{isSaving=false;const button=document.querySelector('[data-action="save"]');if(button){button.disabled=false;button.innerHTML='保存修改 <span aria-hidden="true">↗</span>'}}
     }
     function exportTemplate(){download("sunday-studio-template.json",JSON.stringify({template:"sunday-studio",modules:["首屏介绍","精选内容","品牌故事","特点与价值","资料下载","联系信息"],fields:TEMPLATE},null,2));showToast("模板说明已下载")}
     document.addEventListener("input",event=>{const key=event.target.dataset.field;if(!key)return;draft.fields[key]=event.target.value;persistDraft();renderPreview()});
     document.addEventListener("change",async event=>{const key=event.target.dataset.file;if(!key)return;const file=event.target.files?.[0];if(!file)return;const isPdf=key==="resourcePdf";if(isPdf&&file.type!=="application/pdf"){showToast("请选择 PDF 文件");event.target.value="";return}if(!isPdf&&!["image/png","image/jpeg","image/gif","image/webp"].includes(file.type)){showToast("图片支持 PNG、JPEG、GIF 和 WebP");event.target.value="";return}if(file.size>5*1024*1024){showToast("单个文件最大 5 MB");event.target.value="";return}try{await dbPut(key,file);if(objectUrls[key])URL.revokeObjectURL(objectUrls[key]);objectUrls[key]=URL.createObjectURL(file);draft.assets[key]={name:file.name,type:file.type,size:file.size};persistDraft();render();showToast(`${ASSET_LABELS[key]}已添加`)}catch{showToast("浏览器无法保存此文件，请换一个较小的文件")}});
-    document.addEventListener("click",async event=>{const actionable=event.target.closest("[data-action]");const action=actionable?.dataset.action;if(action){if(action==="dismiss"&&event.target!==actionable)return;if(action==="choose")chooseTemplate();if(action==="back")setMode("template");if(action==="export")exportDraft();if(action==="export-template")exportTemplate();if(action==="save")save();if(action==="close-result"||action==="dismiss")document.getElementById("modal-root").innerHTML="";return}const remove=event.target.closest("[data-remove]")?.dataset.remove;if(remove){await dbDelete(remove);if(objectUrls[remove])URL.revokeObjectURL(objectUrls[remove]);delete objectUrls[remove];delete draft.assets[remove];persistDraft();render();showToast("已移除文件")}});
-    render();restoreAssets();checkSaveService();
+    document.addEventListener("click",async event=>{const actionable=event.target.closest("[data-action]");const action=actionable?.dataset.action;if(action){if(action==="dismiss"&&event.target!==actionable)return;if(action==="copy-code"){try{await navigator.clipboard.writeText(pendingAccount.recoveryCode);document.getElementById('copy-feedback').textContent='已复制，请妥善保存'}catch{document.getElementById('new-recovery-code').select();document.getElementById('copy-feedback').textContent='请手动复制上方找回码'}}if(action==="enter-account"){if(!document.getElementById('code-confirm').checked){showToast('请先保存找回码并勾选确认');return}try{await enterAccount(pendingAccount)}catch{showToast('页面加载失败，请重试')}}if(action==="choose")chooseTemplate();if(action==="back")setMode("template");if(action==="export")exportDraft();if(action==="export-template")exportTemplate();if(action==="save")save();if(action==="close-result"||action==="dismiss")document.getElementById("modal-root").innerHTML="";return}const remove=event.target.closest("[data-remove]")?.dataset.remove;if(remove){await dbDelete(remove);if(objectUrls[remove])URL.revokeObjectURL(objectUrls[remove]);delete objectUrls[remove];delete draft.assets[remove];persistDraft();render();showToast("已移除文件")}});
+    render();checkSaveService();
+    window.addEventListener("beforeunload",event=>{if(mode==="editor"){event.preventDefault();event.returnValue=""}});
   </script>
 </body>
 </html>
