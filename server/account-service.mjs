@@ -30,20 +30,15 @@ export function createAccountService({directory, githubFetch}) {
         const address=request.headers.get('CF-Connecting-IP')||'local';
         for(const key of ['ip:'+address,'phone:'+phone]){let bucket=attempts.get(key);if(!bucket||bucket.until<Date.now()){bucket={n:0,until:Date.now()+600000};attempts.set(key,bucket)}if(++bucket.n>30)return reply({error:'尝试次数过多，请 10 分钟后重试'},429)}
         const result=await exclusive(async()=>{const accounts=await readAccounts();let account=accounts[phone];
-          if(path==='/api/start')return {lookup:true,existing:!!account,legacy:!!account&&!account.passwordHash};
+          if(path==='/api/start')return {lookup:true,existing:!!account};
           const password=body.password;
           if(path==='/api/register'){
-            if(account?.passwordHash)return {error:'该号码已注册，请输入密码登录',status:409};
+            if(account)return {error:'该号码已注册，请输入密码登录',status:409};
             if(typeof password!=='string'||password.length<8||password.length>128)return {error:'密码需要 8–128 位字符',status:400};
             if(password!==body.confirmPassword)return {error:'两次输入的密码不一致',status:400};
-            if(account){
-              const code=String(body.code||'').trim().replace(/-/g,'').toUpperCase();
-              if(!timingSafeEqual(scryptSync(code,account.salt,32),Buffer.from(account.hash,'hex')))return {error:'原找回码不正确',status:401};
-            }
             const created=!account;
             account=account||{siteId:hex(12),editKey:hex(32),createdAt:new Date().toISOString()};
             account.passwordSalt=hex(16);account.passwordHash=scryptSync(password,account.passwordSalt,32).toString('hex');
-            delete account.hash;delete account.salt;
             accounts[phone]=account;await commit(accounts);
             for(const [token,session] of sessions)if(session.siteId===account.siteId)sessions.delete(token);
             return {account,created};
@@ -53,7 +48,7 @@ export function createAccountService({directory, githubFetch}) {
           if(!account?.passwordHash||!timingSafeEqual(actual,Buffer.from(account.passwordHash,'hex')))return {error:'手机号或密码不正确',status:401};
           return {account};
         });
-        if(result.lookup)return reply({existing:result.existing,legacy:result.legacy});
+        if(result.lookup)return reply({existing:result.existing});
         if(result.error)return reply({error:result.error},result.status);
         const content=result.created?{fields:{},assets:[]}:await load(result.account);
         const token=hex(32);sessions.set(token,{...result.account,expires:Date.now()+8*3600000});

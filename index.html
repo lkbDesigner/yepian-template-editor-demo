@@ -42,7 +42,8 @@
     const FIELD_DEFAULTS = Object.fromEntries(Object.keys(TEMPLATE).map(key => [key, ""]));
     const ASSET_KEYS = ["heroImage", "product1Image", "product2Image", "product3Image", "storyImage", "resourcePdf"];
     const ASSET_LABELS = {heroImage:"封面图片", product1Image:"商品图片一", product2Image:"商品图片二", product3Image:"商品图片三", storyImage:"品牌故事图片", resourcePdf:"PDF 文件"};
-    const DB_NAME = "yepian-template-demo";
+    const DB_NAME = "yepian-password-assets-v2";
+    try{for(const key of ['yepian-draft','yepian-edit-key','yepian-github-target'])localStorage.removeItem(key);indexedDB.deleteDatabase('yepian-template-demo')}catch{}
     const DB_STORE = "assets";
     let mode = "template";
     let toastTimer;
@@ -87,12 +88,12 @@
       document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate("start")};
       document.getElementById('account-phone').focus();
     }
-    function requestPassword(phone,existing,legacy=false){
-      const setup=!existing||legacy;
-      document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">${setup?'设置密码':'输入密码'}</h2><p>${legacy?'此账号之前使用找回码。请验证原找回码并设置密码，以后使用密码登录。':setup?'设置一个 8–128 位的密码，下次使用手机号和密码继续编辑。请妥善保存，当前不支持短信重置密码。':'该手机号已有专属页面，输入密码即可继续编辑。'}</p><form id="account-form"><div class="field"><label for="account-phone">手机号码</label><input id="account-phone" value="${esc(phone)}" readonly autocomplete="username"></div>${legacy?'<div class="field"><label for="account-code">原找回码</label><input id="account-code" type="password" required autocomplete="off" placeholder="输入之前保存的找回码"></div>':''}<div class="field"><label for="account-password">${setup?'设置密码':'密码'}</label><input id="account-password" type="password" autocomplete="${setup?'new-password':'current-password'}" ${setup?'minlength="8"':''} maxlength="128" required placeholder="${setup?'请输入 8–128 位密码':'请输入密码'}"></div>${setup?'<div class="field"><label for="account-confirm">再次输入密码</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="请再次输入密码"></div>':''}<p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" id="change-phone">更换手机号</button><button type="submit" class="btn">${setup?'确认并开始编辑':'登录并继续编辑'}</button></div></form></section></div>`;
+    function requestPassword(phone,existing){
+      const setup=!existing;
+      document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">${setup?'设置密码':'输入密码'}</h2><p>${setup?'设置一个 8–128 位的密码，下次使用手机号和密码继续编辑。请妥善保存，当前不支持短信重置密码。':'该手机号已有专属页面，输入密码即可继续编辑。'}</p><form id="account-form"><div class="field"><label for="account-phone">手机号码</label><input id="account-phone" value="${esc(phone)}" readonly autocomplete="username"></div><div class="field"><label for="account-password">${setup?'设置密码':'密码'}</label><input id="account-password" type="password" autocomplete="${setup?'new-password':'current-password'}" ${setup?'minlength="8"':''} maxlength="128" required placeholder="${setup?'请输入 8–128 位密码':'请输入密码'}"></div>${setup?'<div class="field"><label for="account-confirm">再次输入密码</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="请再次输入密码"></div>':''}<p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" id="change-phone">更换手机号</button><button type="submit" class="btn">${setup?'确认并开始编辑':'登录并继续编辑'}</button></div></form></section></div>`;
       document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(setup?'register':'login')};
       document.getElementById('change-phone').onclick=()=>chooseTemplate(phone);
-      document.getElementById(legacy?'account-code':'account-password').focus();
+      document.getElementById('account-password').focus();
     }
     async function authenticate(action){
       const form=document.getElementById('account-form');if(!form.reportValidity())return;
@@ -100,16 +101,15 @@
       const phone=document.getElementById('account-phone').value;
       const password=document.getElementById('account-password')?.value;
       const confirmPassword=document.getElementById('account-confirm')?.value;
-      const code=document.getElementById('account-code')?.value;
       const error=document.getElementById('account-error');
       if(!/^[0-9]{11}$/.test(phone)){error.textContent='手机号码必须是 11 位数字';return}
       if(action==='register'&&password!==confirmPassword){error.textContent='两次输入的密码不一致';return}
       form.dataset.busy='true';form.querySelectorAll('button').forEach(b=>b.disabled=true);
       try{
         if(!SAVE_SERVICE_URL)throw Error('登录服务尚未就绪，请稍后重试');
-        const response=await fetch(SAVE_SERVICE_URL+'/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password,confirmPassword,code}),signal:AbortSignal.timeout(120000)});
+        const response=await fetch(SAVE_SERVICE_URL+'/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password,confirmPassword}),signal:AbortSignal.timeout(120000)});
         const result=await response.json();if(!response.ok)throw Error(result.error||'登录失败');
-        if(action==='start'){requestPassword(phone,result.existing,result.legacy);return}
+        if(action==='start'){requestPassword(phone,result.existing);return}
         await enterAccount(result);
       }catch(e){error.textContent=e.message;delete form.dataset.busy;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
     }
