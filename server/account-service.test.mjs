@@ -9,8 +9,9 @@ test('phone registration, recovery authentication, restart, content restore and 
  let api=createAccountService({directory,githubFetch});
  const call=(path,body,token)=>api(new Request('https://api.test'+path,{method:'POST',headers:{Origin:'https://lkbdesigner.github.io','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)}));
  try{
-  for(const phone of ['123','123456789012','1234567890a','１２３４５６７８９０１'])assert.equal((await call('/api/register',{phone})).status,400);
-  const phone='10000000001';let res=await call('/api/register',{phone});assert.equal(res.status,200);const account=await res.json();assert.match(account.recoveryCode,/^[A-F0-9]{24}$/);assert.deepEqual(account.fields,{});
+  for(const phone of ['123','123456789012','1234567890a','１２３４５６７８９０１'])assert.equal((await call('/api/start',{phone})).status,400);
+  const phone='10000000001';let res=await call('/api/start',{phone});assert.equal(res.status,200);const account=await res.json();assert.match(account.recoveryCode,/^[A-F0-9]{24}$/);assert.deepEqual(account.fields,{});
+  const existing=await call('/api/start',{phone});assert.equal(existing.status,200);assert.deepEqual(await existing.json(),{existing:true});
   assert.equal((await call('/api/register',{phone})).status,409);
   assert.equal((await call('/api/login',{phone,code:'wrong'})).status,401);
   assert.equal((await call('/api/save',{siteId:'abcdefabcdef'},account.token)).status,403);

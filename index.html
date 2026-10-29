@@ -82,25 +82,31 @@
     }
     function renderPreview(){const preview=document.getElementById("live-preview");if(preview)preview.innerHTML=renderSite({fields:draft.fields,assets:draft.assets,urls:objectUrls})}
     function render(){if(mode==="template")renderTemplate();else renderEditor()}
-    function chooseTemplate(){
-      document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">进入我的页面</h2><p>首次使用会生成找回码。之后每次进入编辑，都需要手机号和找回码。手机号仅作账号标识，不发送短信。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码（11 位数字）</label><input id="account-phone" inputmode="numeric" autocomplete="off" maxlength="11" pattern="[0-9]{11}" required placeholder="请输入 11 位手机号码"></div><div class="field"><label for="account-code">找回码（首次使用无需填写）</label><input id="account-code" type="password" autocomplete="off" placeholder="输入之前保存的找回码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="dismiss">取消</button><button type="button" class="btn secondary" id="register-account">首次使用</button><button type="submit" class="btn">继续编辑</button></div></form></section></div>`;
-      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(false)};
-      document.getElementById('register-account').onclick=()=>authenticate(true);
+    function chooseTemplate(phone=''){
+      document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">输入手机号码</h2><p>输入手机号后点击确认。首次使用会生成找回码，已有账号可继续编辑之前的页面。手机号仅作账号标识，不发送短信。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码（11 位数字）</label><input id="account-phone" value="${esc(phone)}" inputmode="numeric" autocomplete="off" maxlength="11" pattern="[0-9]{11}" required placeholder="请输入 11 位手机号码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="dismiss">取消</button><button type="submit" class="btn">确认</button></div></form></section></div>`;
+      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(true)};
       document.getElementById('account-phone').focus();
+    }
+    function requestRecoveryCode(phone){
+      document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">输入找回码</h2><p>该手机号已有专属页面。请输入之前保存的找回码，继续编辑。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码</label><input id="account-phone" value="${esc(phone)}" readonly></div><div class="field"><label for="account-code">找回码</label><input id="account-code" type="password" autocomplete="off" required placeholder="输入之前保存的找回码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" id="change-phone">更换手机号</button><button type="submit" class="btn">验证并继续编辑</button></div></form></section></div>`;
+      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(false)};
+      document.getElementById('change-phone').onclick=()=>chooseTemplate(phone);
+      document.getElementById('account-code').focus();
     }
     async function authenticate(register){
       const form=document.getElementById('account-form');if(!form.reportValidity())return;
-      const phone=document.getElementById('account-phone').value,code=document.getElementById('account-code').value;
+      const phone=document.getElementById('account-phone').value,code=(document.getElementById('account-code')?.value||'');
       const error=document.getElementById('account-error');
       if(!/^[0-9]{11}$/.test(phone)){error.textContent='手机号码必须是 11 位数字';return}
-      if(!register&&!code.trim()){error.textContent='请输入找回码；第一次使用请点击「首次使用」';return}
+      if(!register&&!code.trim()){error.textContent='请输入之前保存的找回码';return}
       form.querySelectorAll('button').forEach(b=>b.disabled=true);
       try{
         if(!SAVE_SERVICE_URL)throw Error('登录服务尚未就绪，请稍后重试');
-        const response=await fetch(SAVE_SERVICE_URL+(register?'/api/register':'/api/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,code}),signal:AbortSignal.timeout(120000)});
+        const response=await fetch(SAVE_SERVICE_URL+(register?'/api/start':'/api/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,code}),signal:AbortSignal.timeout(120000)});
         const result=await response.json();if(!response.ok)throw Error(result.error||'登录失败');
+        if(result.existing){requestRecoveryCode(phone);return}
         if(result.recoveryCode){pendingAccount=result;
-          document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>请保存你的找回码</h2><p>下次进入编辑需要手机号和此找回码。请复制保存在安全的地方；本网站不会通过短信发送，也不能自动找回。</p><div class="field"><label>找回码</label><input readonly id="new-recovery-code" value="${esc(result.recoveryCode)}"></div><button class="btn secondary small" data-action="copy-code">复制找回码</button><p id="copy-feedback" role="status"></p><label><input id="code-confirm" type="checkbox"> 我已保存手机号和找回码</label><div class="modal-actions"><button class="btn" data-action="enter-account">进入我的空白模板</button></div></section></div>`;
+          document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>请保存你的找回码</h2><p>下次进入编辑需要手机号和此找回码。请复制保存在安全的地方；本网站不会通过短信发送，也不能自动找回。</p><div class="field"><label>找回码</label><input readonly id="new-recovery-code" value="${esc(result.recoveryCode)}"></div><button class="btn secondary small" data-action="copy-code">复制找回码</button><p id="copy-feedback" role="status"></p><label><input id="code-confirm" type="checkbox"> 我已保存手机号和找回码</label><div class="modal-actions"><button class="btn" data-action="enter-account">我已保存，开始编辑</button></div></section></div>`;
         }else await enterAccount(result);
       }catch(e){error.textContent=e.message;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
     }

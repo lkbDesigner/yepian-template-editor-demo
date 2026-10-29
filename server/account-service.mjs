@@ -22,7 +22,7 @@ export function createAccountService({directory, githubFetch}) {
     if(path==='/api/status')return reply({ready:true,accounts:true,repository:REPOSITORY});
     if(request.headers.get('Origin')!==origin)return reply({error:'请求来源不被允许'},403);
     try {
-      if(path==='/api/register'||path==='/api/login'){
+      if(path==='/api/start'||path==='/api/register'||path==='/api/login'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         const raw=await boundedBody(request,1024);if(raw.length>1024)return reply({error:'请求过大'},413);
         const body=JSON.parse(raw),phone=body.phone;
@@ -30,7 +30,8 @@ export function createAccountService({directory, githubFetch}) {
         const address=request.headers.get('CF-Connecting-IP')||'local';
         for(const key of ['ip:'+address,'phone:'+phone]){let bucket=attempts.get(key);if(!bucket||bucket.until<Date.now()){bucket={n:0,until:Date.now()+600000};attempts.set(key,bucket)}if(++bucket.n>30)return reply({error:'尝试次数过多，请 10 分钟后重试'},429)}
         const result=await exclusive(async()=>{const accounts=await readAccounts();let account=accounts[phone];
-          if(path==='/api/register'){
+          if(path==='/api/register'||path==='/api/start'){
+            if(account&&path==='/api/start')return {existing:true};
             if(account)return {error:'该号码已注册，请使用原找回码进入编辑',status:409};
             const code=hex(12).toUpperCase(),salt=hex(16);
             account={siteId:hex(12),salt,hash:scryptSync(code,salt,32).toString('hex'),editKey:hex(32),createdAt:new Date().toISOString()};accounts[phone]=account;await commit(accounts);
@@ -41,6 +42,7 @@ export function createAccountService({directory, githubFetch}) {
           if(!account||!timingSafeEqual(actual,Buffer.from(account.hash,'hex')))return {error:'手机号或找回码不正确',status:401};
           return {account};
         });
+        if(result.existing)return reply({existing:true});
         if(result.error)return reply({error:result.error},result.status);
         const content=result.code?{fields:{},assets:[]}:await load(result.account);
         const token=hex(32);sessions.set(token,{...result.account,expires:Date.now()+8*3600000});
