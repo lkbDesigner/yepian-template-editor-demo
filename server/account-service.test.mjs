@@ -7,8 +7,9 @@ test('password registration, validation, login, restart, ownership',async()=>{
  const directory=await mkdtemp(tmpdir()+'/yepian-auth-');
  const githubFetch=async()=>Response.json({content:Buffer.from(JSON.stringify({fields:{heroTitle:'saved content'},assets:{}})).toString('base64')});
  let api=createAccountService({directory,githubFetch});
- const call=(path,body,token)=>api(new Request('https://api.test'+path,{method:'POST',headers:{Origin:'https://lkbdesigner.github.io','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)}));
+ const call=(path,body,token)=>api(new Request('https://api.test'+path,{method:'POST',headers:{Origin:'https://lkbdesigner.github.io','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({clientVersion:2,...body})}));
  try{
+  const outdated=await call('/api/start',{phone:'10000000000',clientVersion:1});assert.equal(outdated.status,426);assert.match((await outdated.json()).error,/页面版本已更新/);
   for(const phone of ['123','123456789012','1234567890a','１２３４５６７８９０１'])assert.equal((await call('/api/start',{phone})).status,400);
   const phone='10000000001',password='Test Password Abc!';
   assert.deepEqual(await (await call('/api/start',{phone})).json(),{existing:false});

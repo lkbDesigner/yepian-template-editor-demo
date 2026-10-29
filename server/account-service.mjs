@@ -26,6 +26,7 @@ export function createAccountService({directory, githubFetch}) {
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         const raw=await boundedBody(request,1024);if(raw.length>1024)return reply({error:'请求过大'},413);
         const body=JSON.parse(raw),phone=body.phone;
+        if(body.clientVersion!==2)return reply({error:'页面版本已更新，请关闭旧页面，并打开最新版：https://lkbdesigner.github.io/yepian-template-editor-demo/?v=password2'},426);
         if(typeof phone!=='string'||!/^\d{11}$/.test(phone))return reply({error:'手机号码必须是 11 位数字'},400);
         const address=request.headers.get('CF-Connecting-IP')||'local';
         for(const key of ['ip:'+address,'phone:'+phone]){let bucket=attempts.get(key);if(!bucket||bucket.until<Date.now()){bucket={n:0,until:Date.now()+600000};attempts.set(key,bucket)}if(++bucket.n>30)return reply({error:'尝试次数过多，请 10 分钟后重试'},429)}

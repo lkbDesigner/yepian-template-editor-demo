@@ -107,13 +107,14 @@
       form.dataset.busy='true';form.querySelectorAll('button').forEach(b=>b.disabled=true);
       try{
         if(!SAVE_SERVICE_URL)throw Error('登录服务尚未就绪，请稍后重试');
-        const response=await fetch(SAVE_SERVICE_URL+'/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password,confirmPassword}),signal:AbortSignal.timeout(120000)});
+        const response=await fetch(SAVE_SERVICE_URL+'/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password,confirmPassword,clientVersion:2}),signal:AbortSignal.timeout(120000)});
         const result=await response.json();if(!response.ok)throw Error(result.error||'登录失败');
         if(action==='start'){requestPassword(phone,result.existing);return}
         await enterAccount(result);
       }catch(e){error.textContent=e.message;delete form.dataset.busy;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
     }
     async function enterAccount(result){
+      if(!result||!Array.isArray(result.assets)||typeof result.token!=='string'||typeof result.siteId!=='string')throw Error('登录结果不完整，请刷新页面后重新登录');
       for(const url of Object.values(objectUrls))URL.revokeObjectURL(url);objectUrls={};
       draft={siteId:result.siteId,fields:{...FIELD_DEFAULTS,...result.fields},assets:{}};
       for(const asset of result.assets){const blob=new Blob([Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0))],{type:asset.type});await dbPut(asset.key,blob);draft.assets[asset.key]={name:asset.name,type:asset.type,size:blob.size};objectUrls[asset.key]=URL.createObjectURL(blob)}
