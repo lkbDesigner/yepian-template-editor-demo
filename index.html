@@ -50,7 +50,7 @@
     let SAVE_SERVICE_URL="";
     let serviceReady=null;
     let isSaving=false;
-    let editKey=null, pendingAccount=null;
+    let editKey=null;
     let draft={fields:{...FIELD_DEFAULTS},assets:{},siteId:null};
     function persistDraft(){} // Editing state stays in memory; saved content is loaded after authentication.
     function esc(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[char]))}
@@ -83,38 +83,41 @@
     function renderPreview(){const preview=document.getElementById("live-preview");if(preview)preview.innerHTML=renderSite({fields:draft.fields,assets:draft.assets,urls:objectUrls})}
     function render(){if(mode==="template")renderTemplate();else renderEditor()}
     function chooseTemplate(phone=''){
-      document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">输入手机号码</h2><p>输入手机号后点击确认。首次使用会生成找回码，已有账号可继续编辑之前的页面。手机号仅作账号标识，不发送短信。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码（11 位数字）</label><input id="account-phone" value="${esc(phone)}" inputmode="numeric" autocomplete="off" maxlength="11" pattern="[0-9]{11}" required placeholder="请输入 11 位手机号码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="dismiss">取消</button><button type="submit" class="btn">确认</button></div></form></section></div>`;
-      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(true)};
+      document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">输入手机号码</h2><p>输入手机号后点击确认。首次使用请设置密码，已有账号请输入密码继续编辑。手机号仅作账号标识，不发送短信。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码（11 位数字）</label><input id="account-phone" value="${esc(phone)}" inputmode="numeric" autocomplete="off" maxlength="11" pattern="[0-9]{11}" required placeholder="请输入 11 位手机号码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" data-action="dismiss">取消</button><button type="submit" class="btn">确认</button></div></form></section></div>`;
+      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate("start")};
       document.getElementById('account-phone').focus();
     }
-    function requestRecoveryCode(phone){
-      document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">输入找回码</h2><p>该手机号已有专属页面。请输入之前保存的找回码，继续编辑。</p><form id="account-form"><div class="field"><label for="account-phone">手机号码</label><input id="account-phone" value="${esc(phone)}" readonly></div><div class="field"><label for="account-code">找回码</label><input id="account-code" type="password" autocomplete="off" required placeholder="输入之前保存的找回码"></div><p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" id="change-phone">更换手机号</button><button type="submit" class="btn">验证并继续编辑</button></div></form></section></div>`;
-      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(false)};
+    function requestPassword(phone,existing,legacy=false){
+      const setup=!existing||legacy;
+      document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title"><h2 id="login-title">${setup?'设置密码':'输入密码'}</h2><p>${legacy?'此账号之前使用找回码。请验证原找回码并设置密码，以后使用密码登录。':setup?'设置一个 8–128 位的密码，下次使用手机号和密码继续编辑。请妥善保存，当前不支持短信重置密码。':'该手机号已有专属页面，输入密码即可继续编辑。'}</p><form id="account-form"><div class="field"><label for="account-phone">手机号码</label><input id="account-phone" value="${esc(phone)}" readonly autocomplete="username"></div>${legacy?'<div class="field"><label for="account-code">原找回码</label><input id="account-code" type="password" required autocomplete="off" placeholder="输入之前保存的找回码"></div>':''}<div class="field"><label for="account-password">${setup?'设置密码':'密码'}</label><input id="account-password" type="password" autocomplete="${setup?'new-password':'current-password'}" ${setup?'minlength="8"':''} maxlength="128" required placeholder="${setup?'请输入 8–128 位密码':'请输入密码'}"></div>${setup?'<div class="field"><label for="account-confirm">再次输入密码</label><input id="account-confirm" type="password" autocomplete="new-password" minlength="8" maxlength="128" required placeholder="请再次输入密码"></div>':''}<p id="account-error" role="alert" style="color:#b34032"></p><div class="modal-actions"><button type="button" class="btn secondary" id="change-phone">更换手机号</button><button type="submit" class="btn">${setup?'确认并开始编辑':'登录并继续编辑'}</button></div></form></section></div>`;
+      document.getElementById('account-form').onsubmit=e=>{e.preventDefault();authenticate(setup?'register':'login')};
       document.getElementById('change-phone').onclick=()=>chooseTemplate(phone);
-      document.getElementById('account-code').focus();
+      document.getElementById(legacy?'account-code':'account-password').focus();
     }
-    async function authenticate(register){
+    async function authenticate(action){
       const form=document.getElementById('account-form');if(!form.reportValidity())return;
-      const phone=document.getElementById('account-phone').value,code=(document.getElementById('account-code')?.value||'');
+      if(form.dataset.busy)return;
+      const phone=document.getElementById('account-phone').value;
+      const password=document.getElementById('account-password')?.value;
+      const confirmPassword=document.getElementById('account-confirm')?.value;
+      const code=document.getElementById('account-code')?.value;
       const error=document.getElementById('account-error');
       if(!/^[0-9]{11}$/.test(phone)){error.textContent='手机号码必须是 11 位数字';return}
-      if(!register&&!code.trim()){error.textContent='请输入之前保存的找回码';return}
-      form.querySelectorAll('button').forEach(b=>b.disabled=true);
+      if(action==='register'&&password!==confirmPassword){error.textContent='两次输入的密码不一致';return}
+      form.dataset.busy='true';form.querySelectorAll('button').forEach(b=>b.disabled=true);
       try{
         if(!SAVE_SERVICE_URL)throw Error('登录服务尚未就绪，请稍后重试');
-        const response=await fetch(SAVE_SERVICE_URL+(register?'/api/start':'/api/login'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,code}),signal:AbortSignal.timeout(120000)});
+        const response=await fetch(SAVE_SERVICE_URL+'/api/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password,confirmPassword,code}),signal:AbortSignal.timeout(120000)});
         const result=await response.json();if(!response.ok)throw Error(result.error||'登录失败');
-        if(result.existing){requestRecoveryCode(phone);return}
-        if(result.recoveryCode){pendingAccount=result;
-          document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>请保存你的找回码</h2><p>下次进入编辑需要手机号和此找回码。请复制保存在安全的地方；本网站不会通过短信发送，也不能自动找回。</p><div class="field"><label>找回码</label><input readonly id="new-recovery-code" value="${esc(result.recoveryCode)}"></div><button class="btn secondary small" data-action="copy-code">复制找回码</button><p id="copy-feedback" role="status"></p><label><input id="code-confirm" type="checkbox"> 我已保存手机号和找回码</label><div class="modal-actions"><button class="btn" data-action="enter-account">我已保存，开始编辑</button></div></section></div>`;
-        }else await enterAccount(result);
-      }catch(e){error.textContent=e.message;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
+        if(action==='start'){requestPassword(phone,result.existing,result.legacy);return}
+        await enterAccount(result);
+      }catch(e){error.textContent=e.message;delete form.dataset.busy;form.querySelectorAll('button').forEach(b=>b.disabled=false)}
     }
     async function enterAccount(result){
       for(const url of Object.values(objectUrls))URL.revokeObjectURL(url);objectUrls={};
       draft={siteId:result.siteId,fields:{...FIELD_DEFAULTS,...result.fields},assets:{}};
       for(const asset of result.assets){const blob=new Blob([Uint8Array.from(atob(asset.data),c=>c.charCodeAt(0))],{type:asset.type});await dbPut(asset.key,blob);draft.assets[asset.key]={name:asset.name,type:asset.type,size:blob.size};objectUrls[asset.key]=URL.createObjectURL(blob)}
-      editKey=result.token;pendingAccount=null;mode='editor';history.replaceState(null,'','#edit/'+result.siteId);
+      editKey=result.token;mode='editor';history.replaceState(null,'','#edit/'+result.siteId);
       document.getElementById('modal-root').innerHTML='';render();window.scrollTo(0,0);
     }
     function setMode(next){
@@ -150,7 +153,7 @@
     function exportTemplate(){download("sunday-studio-template.json",JSON.stringify({template:"sunday-studio",modules:["首屏介绍","精选内容","品牌故事","特点与价值","资料下载","联系信息"],fields:TEMPLATE},null,2));showToast("模板说明已下载")}
     document.addEventListener("input",event=>{const key=event.target.dataset.field;if(!key)return;draft.fields[key]=event.target.value;persistDraft();renderPreview()});
     document.addEventListener("change",async event=>{const key=event.target.dataset.file;if(!key)return;const file=event.target.files?.[0];if(!file)return;const isPdf=key==="resourcePdf";if(isPdf&&file.type!=="application/pdf"){showToast("请选择 PDF 文件");event.target.value="";return}if(!isPdf&&!["image/png","image/jpeg","image/gif","image/webp"].includes(file.type)){showToast("图片支持 PNG、JPEG、GIF 和 WebP");event.target.value="";return}if(file.size>5*1024*1024){showToast("单个文件最大 5 MB");event.target.value="";return}try{await dbPut(key,file);if(objectUrls[key])URL.revokeObjectURL(objectUrls[key]);objectUrls[key]=URL.createObjectURL(file);draft.assets[key]={name:file.name,type:file.type,size:file.size};persistDraft();render();showToast(`${ASSET_LABELS[key]}已添加`)}catch{showToast("浏览器无法保存此文件，请换一个较小的文件")}});
-    document.addEventListener("click",async event=>{const actionable=event.target.closest("[data-action]");const action=actionable?.dataset.action;if(action){if(action==="dismiss"&&event.target!==actionable)return;if(action==="copy-code"){try{await navigator.clipboard.writeText(pendingAccount.recoveryCode);document.getElementById('copy-feedback').textContent='已复制，请妥善保存'}catch{document.getElementById('new-recovery-code').select();document.getElementById('copy-feedback').textContent='请手动复制上方找回码'}}if(action==="enter-account"){if(!document.getElementById('code-confirm').checked){showToast('请先保存找回码并勾选确认');return}try{await enterAccount(pendingAccount)}catch{showToast('页面加载失败，请重试')}}if(action==="choose")chooseTemplate();if(action==="back")setMode("template");if(action==="export")exportDraft();if(action==="export-template")exportTemplate();if(action==="save")save();if(action==="close-result"||action==="dismiss")document.getElementById("modal-root").innerHTML="";return}const remove=event.target.closest("[data-remove]")?.dataset.remove;if(remove){await dbDelete(remove);if(objectUrls[remove])URL.revokeObjectURL(objectUrls[remove]);delete objectUrls[remove];delete draft.assets[remove];persistDraft();render();showToast("已移除文件")}});
+    document.addEventListener("click",async event=>{const actionable=event.target.closest("[data-action]");const action=actionable?.dataset.action;if(action){if(action==="dismiss"&&event.target!==actionable)return;if(action==="choose")chooseTemplate();if(action==="back")setMode("template");if(action==="export")exportDraft();if(action==="export-template")exportTemplate();if(action==="save")save();if(action==="close-result"||action==="dismiss")document.getElementById("modal-root").innerHTML="";return}const remove=event.target.closest("[data-remove]")?.dataset.remove;if(remove){await dbDelete(remove);if(objectUrls[remove])URL.revokeObjectURL(objectUrls[remove]);delete objectUrls[remove];delete draft.assets[remove];persistDraft();render();showToast("已移除文件")}});
     render();checkSaveService();
     window.addEventListener("beforeunload",event=>{if(mode==="editor"){event.preventDefault();event.returnValue=""}});
   </script>

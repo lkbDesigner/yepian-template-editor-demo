@@ -30,26 +30,37 @@ export function createAccountService({directory, githubFetch}) {
         const address=request.headers.get('CF-Connecting-IP')||'local';
         for(const key of ['ip:'+address,'phone:'+phone]){let bucket=attempts.get(key);if(!bucket||bucket.until<Date.now()){bucket={n:0,until:Date.now()+600000};attempts.set(key,bucket)}if(++bucket.n>30)return reply({error:'尝试次数过多，请 10 分钟后重试'},429)}
         const result=await exclusive(async()=>{const accounts=await readAccounts();let account=accounts[phone];
-          if(path==='/api/register'||path==='/api/start'){
-            if(account&&path==='/api/start')return {existing:true};
-            if(account)return {error:'该号码已注册，请使用原找回码进入编辑',status:409};
-            const code=hex(12).toUpperCase(),salt=hex(16);
-            account={siteId:hex(12),salt,hash:scryptSync(code,salt,32).toString('hex'),editKey:hex(32),createdAt:new Date().toISOString()};accounts[phone]=account;await commit(accounts);
-            return {account,code};
+          if(path==='/api/start')return {lookup:true,existing:!!account,legacy:!!account&&!account.passwordHash};
+          const password=body.password;
+          if(path==='/api/register'){
+            if(account?.passwordHash)return {error:'该号码已注册，请输入密码登录',status:409};
+            if(typeof password!=='string'||password.length<8||password.length>128)return {error:'密码需要 8–128 位字符',status:400};
+            if(password!==body.confirmPassword)return {error:'两次输入的密码不一致',status:400};
+            if(account){
+              const code=String(body.code||'').trim().replace(/-/g,'').toUpperCase();
+              if(!timingSafeEqual(scryptSync(code,account.salt,32),Buffer.from(account.hash,'hex')))return {error:'原找回码不正确',status:401};
+            }
+            const created=!account;
+            account=account||{siteId:hex(12),editKey:hex(32),createdAt:new Date().toISOString()};
+            account.passwordSalt=hex(16);account.passwordHash=scryptSync(password,account.passwordSalt,32).toString('hex');
+            delete account.hash;delete account.salt;
+            accounts[phone]=account;await commit(accounts);
+            for(const [token,session] of sessions)if(session.siteId===account.siteId)sessions.delete(token);
+            return {account,created};
           }
-          const code=String(body.code||'').trim().replace(/-/g,'').toUpperCase();
-          const actual=scryptSync(code,account?.salt||'missing-account-salt',32);
-          if(!account||!timingSafeEqual(actual,Buffer.from(account.hash,'hex')))return {error:'手机号或找回码不正确',status:401};
+          if(typeof password!=='string'||password.length>128)return {error:'手机号或密码不正确',status:401};
+          const actual=scryptSync(password,account?.passwordSalt||'missing-account-salt',32);
+          if(!account?.passwordHash||!timingSafeEqual(actual,Buffer.from(account.passwordHash,'hex')))return {error:'手机号或密码不正确',status:401};
           return {account};
         });
-        if(result.existing)return reply({existing:true});
+        if(result.lookup)return reply({existing:result.existing,legacy:result.legacy});
         if(result.error)return reply({error:result.error},result.status);
-        const content=result.code?{fields:{},assets:[]}:await load(result.account);
+        const content=result.created?{fields:{},assets:[]}:await load(result.account);
         const token=hex(32);sessions.set(token,{...result.account,expires:Date.now()+8*3600000});
-        return reply({token,siteId:result.account.siteId,...content,...(result.code?{recoveryCode:result.code}: {})});
+        return reply({token,siteId:result.account.siteId,...content});
       }
       const token=request.headers.get('Authorization')?.replace(/^Bearer /,'');const account=sessions.get(token);
-      if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和找回码进入编辑'},401);
+      if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/save'){
         const body=JSON.parse(await boundedBody(request,12*1024*1024));if(body.siteId!==account.siteId)return reply({error:'不能修改其他用户的页面'},403);
