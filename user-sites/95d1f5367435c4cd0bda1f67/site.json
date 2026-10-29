@@ -1,0 +1,41 @@
+{
+  "template": "sunday-studio",
+  "siteId": "95d1f5367435c4cd0bda1f67",
+  "updatedAt": "2026-10-29T03:29:36.128Z",
+  "editKeyHash": "84de8ce03438e38acbd3e3f6f01a7a1d24922e13d9e21d0735af7f26505e69ac",
+  "fields": {
+    "brandName": "afadfad",
+    "heroTitle": "fadfadfad",
+    "heroDesc": "",
+    "heroButton": "",
+    "productTitle": "",
+    "product1Title": "",
+    "product1Desc": "",
+    "product2Title": "",
+    "product2Desc": "",
+    "product3Title": "",
+    "product3Desc": "",
+    "storyTitle": "",
+    "storyDesc": "",
+    "featureTitle": "",
+    "feature1Title": "",
+    "feature1Desc": "",
+    "feature2Title": "",
+    "feature2Desc": "",
+    "feature3Title": "",
+    "feature3Desc": "",
+    "resourceTitle": "",
+    "resourceDesc": "",
+    "contactTitle": "",
+    "contactDesc": "",
+    "email": ""
+  },
+  "assets": {
+    "heroImage": {
+      "name": "pokemon go GIF.gif",
+      "type": "image/gif",
+      "size": 669117,
+      "path": "assets/heroImage.gif"
+    }
+  }
+}
