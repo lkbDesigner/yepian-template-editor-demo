@@ -143,9 +143,29 @@
         if(!SAVE_SERVICE_URL)throw new Error("共享保存接口尚待站点管理员部署并授权");
         const fields={...draft.fields};const assets=[];
         for(const key of ASSET_KEYS){if(!draft.assets[key])continue;const blob=await dbGet(key);if(!blob)throw new Error("有上传文件未能从本机读取，请重新上传后保存");assets.push({key,name:draft.assets[key].name,type:blob.type,data:await blobToBase64(blob)})}
-        const response=await fetch(`${SAVE_SERVICE_URL}/api/save`,{method:"POST",credentials:"omit",headers:{"Content-Type":"application/json",Authorization:`Bearer ${editKey}`},body:JSON.stringify({siteId:draft.siteId,fields,assets}),signal:AbortSignal.timeout(120000)});
-        const result=await response.json();
+        const response=await fetch(`${SAVE_SERVICE_URL}/api/save`,{method:"POST",credentials:"omit",headers:{"Content-Type":"application/json",Authorization:`Bearer ${editKey}`},body:JSON.stringify({siteId:draft.siteId,fields,assets,requestId:crypto.randomUUID()}),signal:AbortSignal.timeout(120000)});
+        let result=await response.json();
         if(!response.ok)throw new Error(result.error||"云端暂时无法保存，请稍后重试");
+        if(result.queued){
+          const jobId=result.jobId;
+          let complete=false;
+          for(let attempt=0;attempt<90;attempt++){
+            if(button)button.textContent='内容已保存，等待同步…';
+            await new Promise(resolve=>setTimeout(resolve,2000));
+            try{
+              const statusResponse=await fetch(`${SAVE_SERVICE_URL}/api/jobs/${jobId}`,{headers:{Authorization:`Bearer ${editKey}`},signal:AbortSignal.timeout(15000)});
+              if(!statusResponse.ok)break;
+              const status=await statusResponse.json();
+              if(button)button.textContent=status.state==='processing'?'正在同步 GitHub…':`已保存，前面还有 ${status.ahead||0} 个任务`;
+              if(status.state==='done'){result=status.result;complete=true;break}
+              if(status.state==='failed')break;
+            }catch{break}
+          }
+          if(!complete){
+            document.getElementById('modal-root').innerHTML=`<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true"><h2>内容已保存到云端</h2><p>GitHub 同步尚未确认完成。当前内容已存入数据库，下次登录可以继续编辑。同步任务会在后台重试；如长时间未同步，可以再次保存。</p><div class="modal-actions"><button class="btn" data-action="close-result">知道了</button></div></section></div>`;
+            return;
+          }
+        }
         serviceReady=true;
         document.getElementById("modal-root").innerHTML=`<div class="modal-backdrop" data-action="dismiss"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="saved-heading"><h2 id="saved-heading">已保存到站点仓库</h2><p>文字、图片和 PDF 已一并提交。网页公开链接会在 Pages 发布完成后生效，通常需稍等片刻。</p><div class="modal-actions"><a class="btn secondary small" href="${esc(result.commitUrl)}" target="_blank" rel="noreferrer">查看保存记录</a><a class="btn small" href="${esc(result.url)}" target="_blank" rel="noreferrer">打开我的页面 ↗</a><button class="btn ghost small" data-action="close-result">关闭</button></div></section></div>`;
       }catch(error){showToast(`${error.name==="TimeoutError"?"保存耗时较长，请稍后重试":error.message}。请保持当前页面打开后重试`)}
