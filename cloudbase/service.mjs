@@ -11,9 +11,21 @@ async function body(request,limit){
  for(;;){const {value,done}=await reader.read();if(done)break;length+=value.length;if(length>limit){await reader.cancel();throw new ApiError(413,'请求内容过大')}chunks.push(Buffer.from(value))}
  try{return JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{throw new ApiError(400,'请求格式不正确')}
 }
-export function createCloudService({rpc,env}){
+export function createCloudService({rpc,env,githubFetch=fetch}){
  const headers={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff'};
  const reply=(data,status=200)=>Response.json(data,{status,headers});
+ let githubCheck,githubCheckedAt=0;
+ async function checkGitHub(){
+  if(!env.GITHUB_TOKEN)return {ok:false,reason:'missing_token'};
+  if(!githubCheck||Date.now()-githubCheckedAt>60000){
+   githubCheckedAt=Date.now();
+   githubCheck=(async()=>{try{
+    const r=await githubFetch(`https://api.github.com/repos/${REPOSITORY}/git/ref/heads/main`,{headers:{Authorization:`Bearer ${env.GITHUB_TOKEN}`,Accept:'application/vnd.github+json','User-Agent':'Yepian-Save-Service'},signal:AbortSignal.timeout(12000)});
+    await r.arrayBuffer();return {ok:r.ok,status:r.status};
+   }catch(e){return {ok:false,reason:safeFailure(e)}}})();
+  }
+  return githubCheck;
+ }
  let hashing=0;const hashWaiters=[];
  async function passwordHash(password,salt){if(hashing>=4){if(hashWaiters.length>=128)throw new ApiError(503,'登录人数较多，请稍后重试');await new Promise(resolve=>hashWaiters.push(resolve))}else hashing++;try{return await derive(password,salt,32)}finally{const next=hashWaiters.shift();if(next)next();else hashing--}}
  return async(request,ip='unknown')=>{
@@ -21,7 +33,7 @@ export function createCloudService({rpc,env}){
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(path==='/healthz')return reply({ok:true});
   try{
-   if(path==='/api/status'){await rpc('health');return reply({ready:!!env.GITHUB_TOKEN,accounts:true,queue:true,repository:REPOSITORY})}
+   if(path==='/api/status'){await rpc('health');const github=await checkGitHub();return reply({ready:github.ok,accounts:true,queue:true,repository:REPOSITORY,checks:{database:true,github},...(!github.ok?{error:'数据库正常，GitHub 授权或网络连接需要检查'}:{})})}
    if(request.headers.get('Origin')!==origin)throw new ApiError(403,'请求来源不被允许');
    if(['/api/start','/api/register','/api/login'].includes(path)){
     if(request.method!=='POST')throw new ApiError(405,'请求方法不正确');
@@ -70,6 +82,12 @@ export function createCloudService({rpc,env}){
   }catch(e){return reply({error:e instanceof ApiError?e.message:'服务暂时不可用，请稍后重试'},e instanceof ApiError?e.status:503)}
  };
 }
+function safeFailure(error){
+ if(error?.upstreamStatus)return 'github_http_'+Number(error.upstreamStatus);
+ if(error?.name==='TimeoutError'||error?.name==='AbortError')return 'request_timeout';
+ const code=error?.cause?.code||error?.code;
+ return ['ETIMEDOUT','ENOTFOUND','EAI_AGAIN','ECONNRESET','ECONNREFUSED','UND_ERR_CONNECT_TIMEOUT','CERT_HAS_EXPIRED','UNABLE_TO_VERIFY_LEAF_SIGNATURE'].includes(code)?code:'upstream_request_failed';
+}
 export function startWorker({rpc,env,githubFetch=fetch,interval=2000}){
  let stopped=false,timer,busy=false;
  const tick=async()=>{
@@ -82,9 +100,9 @@ export function startWorker({rpc,env,githubFetch=fetch,interval=2000}){
     const result=await saveSubmission(validatePayload(job.payload),job.editKey,env.GITHUB_TOKEN,(url,options)=>githubFetch(url,{...options,signal:AbortSignal.timeout(45000)}));
     await rpc('finish',{holder,id:job.id,result});
    }finally{clearInterval(heartbeat)}
-  }catch{
+  }catch(error){
    if(job)await rpc('fail',{holder,id:job.id}).catch(()=>{});
-   console.error('Queue sync deferred; queued payload remains in database.');
+   console.error('Queue sync deferred:',safeFailure(error),'; queued payload remains in database.');
   }finally{busy=false;if(!stopped)timer=setTimeout(tick,interval)}
  };
  timer=setTimeout(tick,0);

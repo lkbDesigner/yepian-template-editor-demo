@@ -52,6 +52,9 @@ try{
   if(p.endsWith('/git/refs/heads/main')){writes++;activeCommits--;return Response.json({object:{sha:'commit'}})}
   throw Error('Unexpected simulated GitHub request');
  };
+ const deniedApi=createCloudService({rpc,env,githubFetch:async()=>Response.json({}, {status:401})});
+ const diagnostic=await deniedApi(new Request('https://api.test/api/status'));
+ const diagnosticBody=await diagnostic.json();assert.equal(diagnosticBody.ready,false);assert.equal(diagnosticBody.checks.database,true);assert.equal(diagnosticBody.checks.github.status,401);
  const stopWorker=startWorker({rpc,env,githubFetch:fakeGitHub,interval:1});
  try{
   const deadline=Date.now()+30000;
