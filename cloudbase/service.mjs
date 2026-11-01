@@ -11,7 +11,7 @@ async function body(request,limit){
  for(;;){const {value,done}=await reader.read();if(done)break;length+=value.length;if(length>limit){await reader.cancel();throw new ApiError(413,'请求内容过大')}chunks.push(Buffer.from(value))}
  try{return JSON.parse(Buffer.concat(chunks).toString('utf8'))}catch{throw new ApiError(400,'请求格式不正确')}
 }
-export function createCloudService({rpc,env,githubFetch=fetch}){
+export function createCloudService({rpc,env,githubFetch=fetch,onQueued=()=>{}}){
  const headers={'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff'};
  const reply=(data,status=200)=>Response.json(data,{status,headers});
  let githubCheck,githubCheckedAt=0;
@@ -72,6 +72,7 @@ export function createCloudService({rpc,env,githubFetch=fetch}){
     // Store sanitized fields and validated files. DB atomically persists page and queue snapshot.
     const assets=validated.blobs.map(blob=>{const key=Object.keys(validated.assets).find(k=>validated.assets[k].path===blob.path);return {key,name:validated.assets[key].name,type:validated.assets[key].type,data:blob.content}});
     const queued=await rpc('enqueue',{id:hex(16),siteId:session.siteId,requestId:input.requestId,payload:{siteId:session.siteId,fields:validated.fields,assets}});
+    onQueued();
     return reply({queued:true,cloudSaved:true,jobId:queued.id},202);
    }
    if(path.startsWith('/api/jobs/')&&request.method==='GET'){
@@ -88,24 +89,32 @@ function safeFailure(error){
  const code=error?.cause?.code||error?.code;
  return ['ETIMEDOUT','ENOTFOUND','EAI_AGAIN','ECONNRESET','ECONNREFUSED','UND_ERR_CONNECT_TIMEOUT','CERT_HAS_EXPIRED','UNABLE_TO_VERIFY_LEAF_SIGNATURE'].includes(code)?code:'upstream_request_failed';
 }
-export function startWorker({rpc,env,githubFetch=fetch,interval=2000}){
- let stopped=false,timer,busy=false;
+export function startWorker({rpc,env,githubFetch=fetch,interval=100,idleInterval=60000,maxIdleInterval=300000}){
+ let stopped=false,timer,busy=false,wakePending=false,backoff=idleInterval;
  const tick=async()=>{
-  if(stopped||busy)return;busy=true;let job;const holder=hex(16);
+  if(stopped||busy)return;busy=true;let job;let nextDelay=backoff;const holder=hex(16);
   try{
-   if(!env.GITHUB_TOKEN)return;
-   job=await rpc('claim',{holder});if(!job)return;
+   if(!env.GITHUB_TOKEN){nextDelay=maxIdleInterval;return}
+   job=await rpc('claim',{holder});
+   if(!job){nextDelay=backoff;backoff=Math.min(backoff*2,maxIdleInterval);return}
+   backoff=idleInterval;
    const heartbeat=setInterval(()=>rpc('heartbeat',{holder,id:job.id}).catch(()=>{}),30000);
    try{
     const result=await saveSubmission(validatePayload(job.payload),job.editKey,env.GITHUB_TOKEN,(url,options)=>githubFetch(url,{...options,signal:AbortSignal.timeout(45000)}));
-    await rpc('finish',{holder,id:job.id,result});
+    await rpc('finish',{holder,id:job.id,result});nextDelay=interval;
    }finally{clearInterval(heartbeat)}
   }catch(error){
    if(job)await rpc('fail',{holder,id:job.id}).catch(()=>{});
+   nextDelay=Math.max(backoff,60000);backoff=Math.min(backoff*2,maxIdleInterval);
    console.error('Queue sync deferred:',safeFailure(error),'; queued payload remains in database.');
-  }finally{busy=false;if(!stopped)timer=setTimeout(tick,interval)}
+  }finally{
+   busy=false;
+   if(!stopped){timer=setTimeout(tick,wakePending?0:nextDelay);wakePending=false}
+  }
  };
  timer=setTimeout(tick,0);
  const cleanup=setInterval(()=>rpc('cleanup').catch(()=>{}),3600000);
- return ()=>{stopped=true;clearTimeout(timer);clearInterval(cleanup)};
+ const stop=()=>{stopped=true;clearTimeout(timer);clearInterval(cleanup)};
+ stop.wake=()=>{if(stopped)return;backoff=idleInterval;if(busy){wakePending=true;return}clearTimeout(timer);timer=setTimeout(tick,0)};
+ return stop;
 }

@@ -2,8 +2,9 @@ import {createServer} from 'node:http';
 import {Readable} from 'node:stream';
 import {createStore} from './store.mjs';
 import {createCloudService,startWorker} from './service.mjs';
-const rpc=createStore(process.env),handle=createCloudService({rpc,env:process.env});
+const rpc=createStore(process.env);
 const stop=startWorker({rpc,env:process.env});
+const handle=createCloudService({rpc,env:process.env,onQueued:()=>stop.wake()});
 const server=createServer(async(req,res)=>{
  try{
   const hasBody=!['GET','HEAD'].includes(req.method);
