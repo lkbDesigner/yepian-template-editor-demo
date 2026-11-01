@@ -1,0 +1,53 @@
+{
+  "template": "sunday-studio",
+  "siteId": "acca76bc778b985fb2fc00d2",
+  "updatedAt": "2026-11-01T04:28:20.848Z",
+  "editKeyHash": "d8c6c9482acc6ef1929f006d5521eacc1ff33195faf8231c3d124f53af9635e2",
+  "fields": {
+    "brandName": "rweqreewqerq",
+    "heroTitle": "asfasfda",
+    "heroDesc": "13692969092",
+    "heroButton": "",
+    "productTitle": "",
+    "product1Title": "",
+    "product1Desc": "",
+    "product2Title": "",
+    "product2Desc": "",
+    "product3Title": "",
+    "product3Desc": "",
+    "storyTitle": "",
+    "storyDesc": "",
+    "featureTitle": "",
+    "feature1Title": "",
+    "feature1Desc": "",
+    "feature2Title": "",
+    "feature2Desc": "",
+    "feature3Title": "",
+    "feature3Desc": "",
+    "resourceTitle": "",
+    "resourceDesc": "",
+    "contactTitle": "",
+    "contactDesc": "",
+    "email": ""
+  },
+  "assets": {
+    "heroImage": {
+      "name": "Frame 2.png",
+      "type": "image/png",
+      "size": 105354,
+      "path": "assets/heroImage.png"
+    },
+    "product1Image": {
+      "name": "Frame 2.png",
+      "type": "image/png",
+      "size": 105354,
+      "path": "assets/product1Image.png"
+    },
+    "storyImage": {
+      "name": "Frame 2.png",
+      "type": "image/png",
+      "size": 105354,
+      "path": "assets/storyImage.png"
+    }
+  }
+}
