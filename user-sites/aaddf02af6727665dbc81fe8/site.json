@@ -1,0 +1,47 @@
+{
+  "template": "sunday-studio",
+  "siteId": "aaddf02af6727665dbc81fe8",
+  "updatedAt": "2026-11-01T04:14:25.145Z",
+  "editKeyHash": "c7135b9f13fbd923550adb378464d66b0a72b12dac71ad7ca342f527b3885bf8",
+  "fields": {
+    "brandName": "云端部署验证",
+    "heroTitle": "云端排队保存测试",
+    "heroDesc": "验证数据库保存、图片、PDF 与 GitHub 队列同步。",
+    "heroButton": "",
+    "productTitle": "",
+    "product1Title": "",
+    "product1Desc": "",
+    "product2Title": "",
+    "product2Desc": "",
+    "product3Title": "",
+    "product3Desc": "",
+    "storyTitle": "",
+    "storyDesc": "",
+    "featureTitle": "",
+    "feature1Title": "",
+    "feature1Desc": "",
+    "feature2Title": "",
+    "feature2Desc": "",
+    "feature3Title": "",
+    "feature3Desc": "",
+    "resourceTitle": "",
+    "resourceDesc": "",
+    "contactTitle": "",
+    "contactDesc": "",
+    "email": ""
+  },
+  "assets": {
+    "heroImage": {
+      "name": "check.png",
+      "type": "image/png",
+      "size": 68,
+      "path": "assets/heroImage.png"
+    },
+    "resourcePdf": {
+      "name": "check.pdf",
+      "type": "application/pdf",
+      "size": 45,
+      "path": "assets/resourcePdf.pdf"
+    }
+  }
+}
