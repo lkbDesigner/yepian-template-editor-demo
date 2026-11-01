@@ -1,0 +1,53 @@
+{
+  "template": "sunday-studio",
+  "siteId": "4428dd9b548471691bc7cca0",
+  "updatedAt": "2026-11-01T04:26:53.857Z",
+  "editKeyHash": "51d6e19407a2bf19994d1552535aa39daafdcff88d0477c5166c9e5decd5cf6a",
+  "fields": {
+    "brandName": "测试一下",
+    "heroTitle": "fadfafd",
+    "heroDesc": "gasdad",
+    "heroButton": "",
+    "productTitle": "",
+    "product1Title": "",
+    "product1Desc": "",
+    "product2Title": "",
+    "product2Desc": "",
+    "product3Title": "",
+    "product3Desc": "",
+    "storyTitle": "",
+    "storyDesc": "",
+    "featureTitle": "",
+    "feature1Title": "",
+    "feature1Desc": "",
+    "feature2Title": "",
+    "feature2Desc": "",
+    "feature3Title": "",
+    "feature3Desc": "",
+    "resourceTitle": "",
+    "resourceDesc": "",
+    "contactTitle": "",
+    "contactDesc": "",
+    "email": ""
+  },
+  "assets": {
+    "heroImage": {
+      "name": "dock感谢信.png",
+      "type": "image/png",
+      "size": 1603132,
+      "path": "assets/heroImage.png"
+    },
+    "product1Image": {
+      "name": "collage23.png",
+      "type": "image/png",
+      "size": 1138336,
+      "path": "assets/product1Image.png"
+    },
+    "storyImage": {
+      "name": "IMG_5438.png",
+      "type": "image/png",
+      "size": 1286230,
+      "path": "assets/storyImage.png"
+    }
+  }
+}
