@@ -1,3 +1,29 @@
+# 当前测试：本机保存服务 + GitHub
+
+本轮已将运行配置切换为本机服务，不调用腾讯云。cloudbase/ 目录仅保留历史实现。
+
+- 新首页：`portfolio-test/0.design 首页/index.html`，第一张卡片为中文多页面模板。
+- 编辑器自动将完整草稿保存在当前浏览器 IndexedDB；显式“保存”或 Cmd/Ctrl+S 登录后将公开网页同步到 GitHub。
+- 账号沿用本机 `.private/accounts.json`；会话只在服务和网页内存中，服务重启需重新登录。
+- 生成网页位于 `user-sites/<账号随机ID>/portfolios/<草稿UUID>/index.html`。同一草稿再次保存更新相同地址，账号之间相互隔离。
+- GitHub 只保存公开网页（包括公开图片与简历），不保存手机号、密码、会话、编辑草稿、作品原始附件和制作备注。换设备可登录，但本轮不能恢复中文模板的编辑草稿；请在同一浏览器继续编辑并保留私有备份。
+- 发布内容使用不含 allow-same-origin 的 iframe sandbox，防止上传的 HTML 获得编辑器所在的 Pages 源权限。
+
+启动测试：
+
+```sh
+node server/local-server.mjs
+/tmp/cloudflared tunnel --no-autoupdate --protocol http2 --url http://127.0.0.1:8767
+```
+
+`gh` 需登录 lkbDesigner。临时通道重启后地址会变化，需更新 `site-config.json` 和 `portfolio-test/3_中文_空模板/save-config.json` 并发布配置。电脑、两个进程和网络均需持续运行。代码未停止或删除腾讯云账户中的任何资源。
+
+验证：`node --test server/*.test.mjs`。
+
+---
+
+以下为历史记录；其中腾讯云和旧保存服务地址不作为当前测试配置。
+
 # 页间 · 模板画廊与编辑器
 
 ## 页面入口

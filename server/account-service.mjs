@@ -1,9 +1,10 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { REPOSITORY, handleRequest } from './save-worker.mjs';
+import { savePortfolio } from './portfolio-save.mjs';
 const origin = 'https://lkbdesigner.github.io';
 const hex = n => randomBytes(n).toString('hex');
-export function createAccountService({directory, githubFetch}) {
+export function createAccountService({directory, githubFetch, allowedOrigins=[origin]}) {
   const sessions = new Map(), attempts = new Map();
   let queue = Promise.resolve();
   const headers = {'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Content-Type':'application/json','Vary':'Origin'};
@@ -18,9 +19,12 @@ export function createAccountService({directory, githubFetch}) {
   async function load(account){const item=await github(`user-sites/${account.siteId}/site.json`);if(!item)return {fields:{},assets:[]};const doc=JSON.parse(Buffer.from(item.content,'base64').toString());const assets=[];for(const [key,asset] of Object.entries(doc.assets||{})){if(!/^assets\/(heroImage|product[123]Image|storyImage|resourcePdf)\.(png|jpg|gif|webp|pdf)$/.test(asset.path))throw Error('文件路径无效');let file=await github(`user-sites/${account.siteId}/${asset.path}`);if(file&&!file.content&&/^[a-f0-9]{40}$/.test(file.sha)){const res=await githubFetch(`https://api.github.com/repos/${REPOSITORY}/git/blobs/${file.sha}`,{method:'GET'});if(res.ok)file=await res.json()}if(!file?.content)throw Error('文件读取失败，请稍后重试');assets.push({key,name:asset.name,type:asset.type,data:file.content.replace(/\s/g,'')})}return {fields:doc.fields,assets}}
   return async request => {
     const path=new URL(request.url).pathname;
-    if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
-    if(path==='/api/status')return reply({ready:true,accounts:true,repository:REPOSITORY});
-    if(request.headers.get('Origin')!==origin)return reply({error:'请求来源不被允许'},403);
+    const source=request.headers.get('Origin');
+    const accepted=allowedOrigins.includes(source);
+    const reply=(data,status=200)=>Response.json(data,{status,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{'Access-Control-Allow-Origin':origin})}});
+    if(request.method==='OPTIONS')return new Response(null,{status:accepted?204:403,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{})}});
+    if(path==='/api/status')return reply({ready:true,accounts:true,portfolios:true,mode:'local-github',repository:REPOSITORY});
+    if(!accepted)return reply({error:'请求来源不被允许'},403);
     try {
       if(path==='/api/start'||path==='/api/register'||path==='/api/login'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
@@ -51,19 +55,24 @@ export function createAccountService({directory, githubFetch}) {
         });
         if(result.lookup)return reply({existing:result.existing});
         if(result.error)return reply({error:result.error},result.status);
-        const content=result.created?{fields:{},assets:[]}:await load(result.account);
+        const content=result.created||body.template==='chinese-portfolio'?{fields:{},assets:[]}:await load(result.account);
         const token=hex(32);sessions.set(token,{...result.account,expires:Date.now()+8*3600000});
         return reply({token,siteId:result.account.siteId,...content});
       }
       const token=request.headers.get('Authorization')?.replace(/^Bearer /,'');const account=sessions.get(token);
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
+      if(path==='/api/portfolio'){
+        if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
+        const body=JSON.parse(await boundedBody(request,48*1024*1024));
+        return reply(await savePortfolio(body,account,githubFetch));
+      }
       if(path==='/api/save'){
         const body=JSON.parse(await boundedBody(request,12*1024*1024));if(body.siteId!==account.siteId)return reply({error:'不能修改其他用户的页面'},403);
         const secured=new Request(request.url,{method:'POST',headers:{'Origin':origin,'Content-Type':'application/json','Authorization':`Bearer ${account.editKey}`},body:JSON.stringify(body)});
         return handleRequest(secured,{GITHUB_TOKEN:'local-gh-transport'},{githubFetch});
       }
       return reply({error:'接口不存在'},404);
-    }catch{return reply({error:'服务暂时不可用，请稍后重试'},502)}
+    }catch(error){return reply({error:error.status?error.message:'服务暂时不可用，请稍后重试'},error.status||502)}
   };
 }

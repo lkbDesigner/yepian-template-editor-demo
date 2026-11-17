@@ -1,0 +1,26 @@
+/* Match the selected card with the case cover during same-origin navigation. */
+@view-transition { navigation: auto; }
+::view-transition-group(portfolio-case) {
+  animation-duration: .8s;
+  animation-timing-function: cubic-bezier(.65,0,.2,1);
+  overflow: clip;
+}
+::view-transition-old(portfolio-case), ::view-transition-new(portfolio-case) {
+  height: 100%; width: 100%; object-fit: cover;
+  animation-duration: .8s;
+}
+::view-transition-group(root) { animation-duration: .35s; }
+.case-zoom-overlay { position: fixed; z-index: 10000; margin: 0; pointer-events: none; transform: none !important; box-shadow: 0 0 0 100vmax #101114; }
+html.case-returning { scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-group(*) { animation-duration: .01ms !important; }
+}
+
+/* Returning crossfades the actual scrolled case and restored homepage. */
+:root.case-crossfade-return::view-transition-group(root){animation:none}
+:root.case-crossfade-return::view-transition-old(root){animation:case-return-fade-out 650ms cubic-bezier(.4,0,.2,1) both;mix-blend-mode:normal}
+:root.case-crossfade-return::view-transition-new(root){animation:case-return-fade-in 650ms cubic-bezier(.4,0,.2,1) both;mix-blend-mode:normal}
+@keyframes case-return-fade-out{from{opacity:1}to{opacity:1}}
+@keyframes case-return-fade-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){:root.case-crossfade-return::view-transition-old(root),:root.case-crossfade-return::view-transition-new(root){animation-duration:.01ms}}

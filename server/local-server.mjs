@@ -8,7 +8,7 @@ import { ghFetch } from "./gh-transport.mjs";
 const account = execFileSync("gh", ["api", "user", "--jq", ".login"], { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
 if (account.toLowerCase() !== "lkbdesigner") throw new Error("Please sign in to GitHub CLI as lkbDesigner before running the shared save service");
 
-const accountService = createAccountService({directory:fileURLToPath(new URL("../.private/", import.meta.url)),githubFetch:ghFetch});
+const accountService = createAccountService({directory:fileURLToPath(new URL("../.private/", import.meta.url)),githubFetch:ghFetch,allowedOrigins:["https://lkbdesigner.github.io","http://127.0.0.1:8765","http://localhost:8765"]});
 const server = createServer(async (incoming, outgoing) => {
   try {
     const hasBody = !["GET", "HEAD"].includes(incoming.method);
