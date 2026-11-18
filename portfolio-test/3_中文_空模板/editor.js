@@ -9,9 +9,12 @@ function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');cl
 try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}catch{toast('浏览器存储不可用，请使用备份资料');}
 async function get(id){if(!db||!id)return null;return new Promise((resolve,reject)=>{let r=db.transaction('drafts').objectStore('drafts').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 async function save(announce=false){if(resetting)return false;clearTimeout(timer);if(pending&&announce){toast('请先保存或取消作品资料弹窗');return false;}if(!db){toast('存储不可用，请下载备份');return false;}
+ const titleFields=['home-top','global'].flatMap(id=>E.definitions.find(d=>d.id===id)?.fields||[]);state.title=titleFields.filter(f=>!state.hidden?.[f.id]&&['text','textarea'].includes(f.type)).map(f=>state.values[f.id]).find(v=>typeof v==='string'&&v.trim())?.trim().slice(0,100)||'中文作品集模板';
  const snapshot=structuredClone(state);try{await(saving=saving.catch(()=>{}).then(()=>new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(snapshot);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);})));if(state.updated===snapshot.updated)$('#status').textContent='已保存到本机';localStorage.setItem(current,state.id);if(announce)toast('已保存到当前浏览器');return true;}catch{$('#status').textContent='保存失败';toast('保存失败，请下载备份');return false;}}
 const params=new URLSearchParams(location.search);const id=params.get('draft')||localStorage.getItem(current);
-try{state=params.has('new')?E.empty():await get(id)||E.empty();}catch{state=E.empty();}
+try{state=params.has('new')?E.empty():await get(id);}catch{state=null;}
+if(params.has('draft')&&!params.has('new')&&(!state||state.owner&&state.owner!==PortfolioGitHub.accountId)){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
+state||=E.empty();
 if(state.owner&&state.owner!==PortfolioGitHub.accountId)state=E.empty();
 state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
@@ -201,12 +204,12 @@ async function saveGitHub(){
  if(!await save())return;
  if(pending){toast('请先保存或取消作品资料弹窗');return;}
  publishing=true;const button=$('#save');button.disabled=true;$('#reset-template').disabled=true;$('#exit').disabled=true;button.textContent='正在保存…';
- try{await PortfolioGitHub.save(state.id,E.publicHTML(structuredClone(state),'home'));toast('已保存到 GitHub');}
+ try{const result=await PortfolioGitHub.save(state.id,E.publicHTML(structuredClone(state),'home'),state.title);state.github={url:result.url,commitUrl:result.commitUrl,savedAt:Date.now()};await save();toast('已保存到 GitHub');}
  catch(error){toast(error.message);}
  finally{publishing=false;button.disabled=false;$('#reset-template').disabled=false;$('#exit').disabled=false;button.textContent='保存';}
 }
 $('#save').onclick=saveGitHub;$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
-$('#exit').onclick=async()=>{if(await save()){await PortfolioGitHub.logout();location.href='index.html';}};
+$('#exit').onclick=async()=>{if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{await PortfolioGitHub.logout();location.href='index.html';}}};
 const resetDialog=$('#reset-dialog');
 function closeReset(){if(!resetting)resetDialog.close();}
 $('#reset-template').onclick=()=>{closePalette();$('#reset-error').hidden=true;resetDialog.showModal();$('#cancel-reset').focus();};

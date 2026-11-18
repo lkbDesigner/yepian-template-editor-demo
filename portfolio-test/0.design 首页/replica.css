@@ -5,3 +5,5 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.replica-collage{height:600px
 
 /* Match the original navigation: 16px horizontal padding per item and a 4px gap. */
 nav.portfolio-navigation{display:flex!important;align-items:center!important;gap:4px!important;padding:0!important}nav.portfolio-navigation>button{display:inline-block!important;padding:8px 16px!important;margin:0!important;white-space:nowrap;font:inherit;background:transparent;border:0;line-height:24px;color:#182d38}
+
+nav.portfolio-navigation>button[data-my-templates],nav.portfolio-navigation>button[data-account-login]{cursor:pointer}nav.portfolio-navigation>button:hover{text-decoration:underline}

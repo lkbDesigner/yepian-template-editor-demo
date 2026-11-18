@@ -1,7 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import { REPOSITORY, handleRequest } from './save-worker.mjs';
-import { savePortfolio } from './portfolio-save.mjs';
+import { savePortfolio, listPortfolios } from './portfolio-save.mjs';
 const origin = 'https://lkbdesigner.github.io';
 const hex = n => randomBytes(n).toString('hex');
 export function createAccountService({directory, githubFetch, allowedOrigins=[origin]}) {
@@ -23,7 +23,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
     const accepted=allowedOrigins.includes(source);
     const reply=(data,status=200)=>Response.json(data,{status,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{'Access-Control-Allow-Origin':origin})}});
     if(request.method==='OPTIONS')return new Response(null,{status:accepted?204:403,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{})}});
-    if(path==='/api/status')return reply({ready:true,accounts:true,portfolios:true,mode:'local-github',repository:REPOSITORY});
+    if(path==='/api/status')return reply({ready:true,accounts:true,portfolios:true,myTemplates:true,mode:'local-github',repository:REPOSITORY});
     if(!accepted)return reply({error:'请求来源不被允许'},403);
     try {
       if(path==='/api/start'||path==='/api/register'||path==='/api/login'){
@@ -63,6 +63,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
       if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId});
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
+      if(path==='/api/portfolios')return reply({templates:await listPortfolios(account,githubFetch)});
       if(path==='/api/portfolio'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         const body=JSON.parse(await boundedBody(request,48*1024*1024));

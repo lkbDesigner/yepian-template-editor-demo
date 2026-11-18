@@ -17,6 +17,8 @@ export async function savePortfolio(input,account,githubFetch){
   const content=publicWrapper(input.html);
   if(Buffer.byteLength(content)>48*1024*1024)fail(413,'网页内容过大，请压缩图片后重试');
   const root=`user-sites/${account.siteId}/portfolios/${input.draftId}`;
+  const title=typeof input.title==='string'?input.title.trim().slice(0,100):'';
+  const metadata={draftId:input.draftId,title:title||'中文作品集模板',template:'chinese-portfolio',updatedAt:new Date().toISOString()};
   const api=async(path,method='GET',body)=>{
     const res=await githubFetch(`https://api.github.com/repos/${REPOSITORY}${path}`,{method,...(body?{body:JSON.stringify(body)}:{})});
     if(!res.ok){const error=new Error('GitHub 暂时无法接收保存，请重试');error.upstreamStatus=res.status;throw error;}
@@ -27,10 +29,28 @@ export async function savePortfolio(input,account,githubFetch){
     const head=await api('/git/ref/heads/main');
     const parent=await api('/git/commits/'+head.object.sha);
     blob??=await api('/git/blobs','POST',{encoding:'base64',content:Buffer.from(content).toString('base64')});
-    const tree=await api('/git/trees','POST',{base_tree:parent.tree.sha,tree:[{path:root+'/index.html',mode:'100644',type:'blob',sha:blob.sha}]});
+    const tree=await api('/git/trees','POST',{base_tree:parent.tree.sha,tree:[{path:root+'/index.html',mode:'100644',type:'blob',sha:blob.sha},{path:root+'/template.json',mode:'100644',type:'blob',content:JSON.stringify(metadata)}]});
     const commit=await api('/git/commits','POST',{message:'Save Chinese portfolio '+input.draftId,tree:tree.sha,parents:[head.object.sha]});
     try{await api('/git/refs/heads/main','PATCH',{sha:commit.sha,force:false});}
     catch(error){if([409,422].includes(error.upstreamStatus)&&attempt<2)continue;throw error;}
     return {saved:true,url:PAGES+'/'+root+'/',commitUrl:`https://github.com/${REPOSITORY}/commit/${commit.sha}`};
   }
+}
+
+export async function listPortfolios(account,githubFetch){
+ if(!/^[a-f0-9]{24}$/.test(account.siteId))fail(403,'账号标识不正确');
+ const root=`user-sites/${account.siteId}/portfolios`;
+ const res=await githubFetch(`https://api.github.com/repos/${REPOSITORY}/contents/${root}?ref=main`,{method:'GET'});
+ if(res.status===404)return [];
+ if(!res.ok)throw Error('暂时无法读取 GitHub 模板');
+ const dirs=await res.json();if(!Array.isArray(dirs))throw Error('模板列表格式异常');
+ const result=[];
+ // Build every path from the authenticated account and a validated draft ID.
+ for(const dir of dirs){
+  if(dir.type!=='dir'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(dir.name))continue;
+  const meta=await githubFetch(`https://api.github.com/repos/${REPOSITORY}/contents/${root}/${dir.name}/template.json?ref=main`,{method:'GET'});
+  let data={};if(meta.ok){const file=await meta.json();data=JSON.parse(Buffer.from(file.content,'base64').toString('utf8'));}else if(meta.status!==404)throw Error('暂时无法读取模板详情');
+  result.push({draftId:dir.name,title:typeof data.title==='string'?data.title.slice(0,100):'中文作品集模板',updatedAt:Number.isFinite(Date.parse(data.updatedAt))?data.updatedAt:null,url:PAGES+'/'+root+'/'+dir.name+'/'});
+ }
+ return result;
 }
