@@ -1,9 +1,10 @@
 (async()=>{
 'use strict';
+if(!await PortfolioGitHub.enterEditor())return;
 const E=TemplateEngine,$=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let draftEpoch=0,resetting=false,publishing=false;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
 let locating=false,locateKey=null,locateAfterLoad=null;
-const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current';
+const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current:'+PortfolioGitHub.accountId;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3000);}
 try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}catch{toast('浏览器存储不可用，请使用备份资料');}
 async function get(id){if(!db||!id)return null;return new Promise((resolve,reject)=>{let r=db.transaction('drafts').objectStore('drafts').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
@@ -11,6 +12,8 @@ async function save(announce=false){if(resetting)return false;clearTimeout(timer
  const snapshot=structuredClone(state);try{await(saving=saving.catch(()=>{}).then(()=>new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(snapshot);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);})));if(state.updated===snapshot.updated)$('#status').textContent='已保存到本机';localStorage.setItem(current,state.id);if(announce)toast('已保存到当前浏览器');return true;}catch{$('#status').textContent='保存失败';toast('保存失败，请下载备份');return false;}}
 const params=new URLSearchParams(location.search);const id=params.get('draft')||localStorage.getItem(current);
 try{state=params.has('new')?E.empty():await get(id)||E.empty();}catch{state=E.empty();}
+if(state.owner&&state.owner!==PortfolioGitHub.accountId)state=E.empty();
+state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
 if(footerMigration.conflicts)toast('联系与页脚已合并，优先沿用首页内容；原有差异仍保留在资料备份中');
 params.delete('new');params.set('draft',state.id);history.replaceState(null,'',location.pathname+'?'+params);localStorage.setItem(current,state.id);
@@ -203,7 +206,7 @@ async function saveGitHub(){
  finally{publishing=false;button.disabled=false;$('#reset-template').disabled=false;$('#exit').disabled=false;button.textContent='保存';}
 }
 $('#save').onclick=saveGitHub;$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
-$('#exit').onclick=async()=>{if(await save())location.href='index.html';};
+$('#exit').onclick=async()=>{if(await save()){await PortfolioGitHub.logout();location.href='index.html';}};
 const resetDialog=$('#reset-dialog');
 function closeReset(){if(!resetting)resetDialog.close();}
 $('#reset-template').onclick=()=>{closePalette();$('#reset-error').hidden=true;resetDialog.showModal();$('#cancel-reset').focus();};
@@ -214,7 +217,7 @@ $('#confirm-reset').onclick=async()=>{
  if(!db){$('#reset-error').textContent='本机存储不可用，未清空资料。请先备份后重试。';$('#reset-error').hidden=false;return;}
  resetting=true;draftEpoch++;clearTimeout(timer);
  resetDialog.querySelectorAll('button').forEach(b=>b.disabled=true);$('#confirm-reset').textContent='正在还原…';
- const fresh=E.empty();fresh.id=state.id;fresh.updated=Math.max(Date.now(),state.updated+1);
+ const fresh=E.empty();fresh.id=state.id;fresh.owner=state.owner;fresh.updated=Math.max(Date.now(),state.updated+1);
  try{
   // Wait for queued saves, then replace only the current draft in one transaction.
   await (saving=saving.catch(()=>{}).then(()=>new Promise((resolve,reject)=>{

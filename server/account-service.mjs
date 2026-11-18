@@ -61,6 +61,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       }
       const token=request.headers.get('Authorization')?.replace(/^Bearer /,'');const account=sessions.get(token);
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
+      if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId});
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/portfolio'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);

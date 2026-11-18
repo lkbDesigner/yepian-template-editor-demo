@@ -24,9 +24,13 @@ test('portfolio API requires login and accepts loopback CORS only when configure
  const call=(path,body,token,origin='http://127.0.0.1:8765')=>api(new Request('https://save.local'+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)}));
  try{
  assert.equal((await call('/api/portfolio',{draftId,html})).status,401);
+ assert.equal((await call('/api/session',{})).status,401);
  assert.equal((await call('/api/register',{},null,'https://evil.example')).status,403);
  const registration=await call('/api/register',{phone:'10000000002',password:'Test password!',confirmPassword:'Test password!',clientVersion:2,template:'chinese-portfolio'});
  assert.equal(registration.status,200);assert.equal(registration.headers.get('Access-Control-Allow-Origin'),'http://127.0.0.1:8765');
- const account=await registration.json();const saved=await call('/api/portfolio',{draftId,html},account.token);assert.equal(saved.status,200);assert.ok((await saved.json()).url.includes(account.siteId));
+ const account=await registration.json();
+ const session=await call('/api/session',{},account.token);assert.equal(session.status,200);assert.deepEqual(await session.json(),{authenticated:true,siteId:account.siteId});
+ const saved=await call('/api/portfolio',{draftId,html},account.token);assert.equal(saved.status,200);assert.ok((await saved.json()).url.includes(account.siteId));
+ await call('/api/logout',{},account.token);assert.equal((await call('/api/session',{},account.token)).status,401);
  }finally{await rm(directory,{recursive:true,force:true});}
 });
