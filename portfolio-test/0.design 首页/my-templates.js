@@ -39,6 +39,7 @@ async function load(){
  }catch(err){if(err.cancelled){location.href='index.html';return;}$('#count').textContent='读取失败';$('#error').hidden=false;$('#error').textContent=err.message;}
  finally{loading=false;$('#refresh').hidden=false;$('#refresh').disabled=false;}
 }
-$('#refresh').onclick=load;$('#logout').onclick=async()=>{await PortfolioGitHub.logout();location.href='index.html';};
+$('#refresh').onclick=load;
+addEventListener('portfolio-session-ended',()=>{document.querySelector('#templates').replaceChildren();location.replace('index.html');});
 addEventListener('pageshow',e=>{if(e.persisted)load();});await load();
 })();

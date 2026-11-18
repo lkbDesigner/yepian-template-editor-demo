@@ -30,7 +30,7 @@ test('portfolio API requires login and accepts loopback CORS only when configure
  const registration=await call('/api/register',{phone:'10000000002',password:'Test password!',confirmPassword:'Test password!',clientVersion:2,template:'chinese-portfolio'});
  assert.equal(registration.status,200);assert.equal(registration.headers.get('Access-Control-Allow-Origin'),'http://127.0.0.1:8765');
  const account=await registration.json();
- const session=await call('/api/session',{},account.token);assert.equal(session.status,200);assert.deepEqual(await session.json(),{authenticated:true,siteId:account.siteId});
+ const session=await call('/api/session',{},account.token);assert.equal(session.status,200);const identity=await session.json();assert.equal(identity.authenticated,true);assert.equal(identity.siteId,account.siteId);assert.equal(identity.phone,'10000000002');assert.equal(identity.expires,account.expires);assert.ok(identity.expires>Date.now());assert.ok(!('password' in identity));assert.ok(!('passwordHash' in identity));
  const saved=await call('/api/portfolio',{draftId,html},account.token);assert.equal(saved.status,200);assert.ok((await saved.json()).url.includes(account.siteId));
  await call('/api/logout',{},account.token);assert.equal((await call('/api/session',{},account.token)).status,401);
  }finally{await rm(directory,{recursive:true,force:true});}

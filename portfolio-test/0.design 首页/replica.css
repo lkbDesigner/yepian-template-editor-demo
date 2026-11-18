@@ -7,3 +7,7 @@ html{scroll-behavior:smooth}body{overflow-x:hidden}.replica-collage{height:600px
 nav.portfolio-navigation{display:flex!important;align-items:center!important;gap:4px!important;padding:0!important}nav.portfolio-navigation>button{display:inline-block!important;padding:8px 16px!important;margin:0!important;white-space:nowrap;font:inherit;background:transparent;border:0;line-height:24px;color:#182d38}
 
 nav.portfolio-navigation>button[data-my-templates],nav.portfolio-navigation>button[data-account-login]{cursor:pointer}nav.portfolio-navigation>button:hover{text-decoration:underline}
+
+nav.portfolio-navigation>[hidden]{display:none!important}.portfolio-navigation .account-user{display:inline-flex;align-items:center;gap:14px;padding:8px 16px;white-space:nowrap}.portfolio-navigation .account-user[hidden]{display:none!important}.portfolio-navigation .account-user button{cursor:pointer;padding:0;font-size:14px;color:#667982}.portfolio-navigation .account-user button:hover{text-decoration:underline}@media(max-width:620px){.portfolio-navigation .account-user{gap:8px;padding:8px}.portfolio-navigation .account-user button{font-size:12px}}
+
+@media(max-width:620px){nav.py-4 .w-full>a>img{width:128px;height:auto}.portfolio-navigation .account-user{font-size:13px;flex-direction:column;align-items:flex-end;gap:0;padding:4px 8px}}

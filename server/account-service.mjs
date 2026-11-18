@@ -56,12 +56,12 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
         if(result.lookup)return reply({existing:result.existing});
         if(result.error)return reply({error:result.error},result.status);
         const content=result.created||body.template==='chinese-portfolio'?{fields:{},assets:[]}:await load(result.account);
-        const token=hex(32);sessions.set(token,{...result.account,expires:Date.now()+8*3600000});
-        return reply({token,siteId:result.account.siteId,...content});
+        const token=hex(32),expires=Date.now()+8*3600000;sessions.set(token,{...result.account,phone,expires});
+        return reply({token,siteId:result.account.siteId,phone,expires,...content});
       }
       const token=request.headers.get('Authorization')?.replace(/^Bearer /,'');const account=sessions.get(token);
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
-      if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId});
+      if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId,phone:account.phone,expires:account.expires});
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/portfolios')return reply({templates:await listPortfolios(account,githubFetch)});
       if(path==='/api/portfolio'){

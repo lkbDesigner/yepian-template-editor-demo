@@ -209,7 +209,7 @@ async function saveGitHub(){
  finally{publishing=false;button.disabled=false;$('#reset-template').disabled=false;$('#exit').disabled=false;button.textContent='保存';}
 }
 $('#save').onclick=saveGitHub;$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
-$('#exit').onclick=async()=>{if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{await PortfolioGitHub.logout();location.href='index.html';}}};
+$('#exit').onclick=async()=>{if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{location.href='index.html';}}};
 const resetDialog=$('#reset-dialog');
 function closeReset(){if(!resetting)resetDialog.close();}
 $('#reset-template').onclick=()=>{closePalette();$('#reset-error').hidden=true;resetDialog.showModal();$('#cancel-reset').focus();};
@@ -237,5 +237,6 @@ $('#confirm-reset').onclick=async()=>{
 
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveGitHub();}if(e.key==='Escape')closePalette();});
 addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing){e.preventDefault();e.returnValue='';}});
+addEventListener('portfolio-session-ended',async()=>{await save();location.href=new URL('../0.design 首页/index.html',location.href).href;});
 tabs();panel();draw(false);await save();
 })();
