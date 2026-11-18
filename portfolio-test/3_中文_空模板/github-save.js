@@ -5,9 +5,20 @@ const dialog=document.createElement('dialog');dialog.className='github-dialog';
 dialog.innerHTML=`<form><h2>登录后编辑模板</h2><p>输入手机号后继续：新用户设置密码，已有账号输入密码。手机号仅作为测试账号，不发送短信。</p><label>手机号<input name="phone" inputmode="numeric" autocomplete="username" pattern="[0-9]{11}" maxlength="11" required placeholder="11 位手机号"></label><label class="password-step" hidden>密码<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128"></label><label class="confirm-step" hidden>确认密码<input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128"></label><p class="github-error" role="alert"></p><div class="github-actions"><button type="button" data-cancel>取消</button><button type="submit" class="primary">继续</button></div></form>`;
 document.body.append(dialog);
 const form=dialog.querySelector('form'),error=dialog.querySelector('.github-error');
+function connectionError(path){return Error(path==='/api/portfolio'?'保存服务连接中断，本机草稿仍保留，请稍后再保存。':'登录服务暂时无法连接，请点击继续重试；仍失败时请刷新页面。');}
 async function api(path,body,auth=false){
- const response=await fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(180000)});
- const result=await response.json().catch(()=>({error:'服务返回异常，请稍后重试'}));
+ await connect();
+ const request=()=>fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(path==='/api/portfolio'?180000:20000)});
+ let response;
+ try{response=await request();}
+ catch{
+  service=null;
+  // Retry only non-writing authentication operations. Registration and saves
+  // may already have reached the server, so never automatically replay them.
+  if(!['/api/start','/api/login','/api/session'].includes(path))throw connectionError(path);
+  try{await connect();response=await request();}catch{service=null;throw connectionError(path);}
+ }
+ const result=await response.json().catch(()=>({error:'登录或保存服务返回异常，请稍后重试'}));
  if(!response.ok){if(response.status===401){token=null;accountId=null;}throw Object.assign(Error(result.error||'请求失败，请重试'),{status:response.status});}return result;
 }
 async function connect(){
