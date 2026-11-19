@@ -278,7 +278,7 @@ $('#submit-review').onclick=async()=>{
 };
 $('#approve-review').onclick=async()=>{
  if(!reviewView||locked()||submitting||publishing||pendingUploads)return;if(pending){toast('请先保存作品资料');return;}if(!confirm('审核通过后，用户即可发布此版本。确认通过审核？'))return;
- submitting=true;applyMode();$('#approve-review').textContent='正在审核…';try{const saved=await saveGitHub({silent:true});if(!saved)return;const result=await PortfolioGitHub.approve(reviewId,saved.revision);state.remote={revision:result.revision,savedAt:result.updatedAt,savedUpdated:state.updated,status:result.status,reviewId,approvedAt:result.approvedAt,publication:result.publication||null};toast('审核已通过，用户现在可以发布');}catch(error){if(error.issues)showValidation(error.issues);else toast(error.message);}finally{submitting=false;$('#approve-review').textContent='审核通过';applyMode();}
+ submitting=true;applyMode();$('#approve-review').textContent='正在审核…';try{const saved=state.updated>state.remote.savedUpdated?await saveGitHub({silent:true}):{revision:state.remote.revision};if(!saved)return;const result=await PortfolioGitHub.approve(reviewId,saved.revision);state.remote={revision:result.revision,savedAt:result.updatedAt,savedUpdated:state.updated,status:result.status,reviewId,approvedAt:result.approvedAt,publication:result.publication||null};toast('审核已通过，用户现在可以发布');}catch(error){if(error.issues)showValidation(error.issues);else toast(error.message);}finally{submitting=false;$('#approve-review').textContent='审核通过';applyMode();}
 };
 $('#publish-template').onclick=async()=>{
  if(reviewView||publishing||submitting||state.remote?.status!=='approved'||state.updated>state.remote.savedUpdated)return;if(!confirm('发布后网站内容将公开，原始附件及制作备注不会公开。确认发布？'))return;
