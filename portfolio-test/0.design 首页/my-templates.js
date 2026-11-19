@@ -23,7 +23,7 @@ function render(items){
 async function load(){
  if(loading)return;loading=true;$('#refresh').disabled=true;$('#error').hidden=true;$('#notice').hidden=true;$('#templates').replaceChildren();$('#empty').hidden=true;$('#storage-note').hidden=true;$('#count').textContent='正在读取模板…';
  try{
-  const owner=await PortfolioGitHub.accountSession();$('#logout').hidden=false;let locals=[],published=[];let localError=false,remoteError=false;
+  const owner=await PortfolioGitHub.accountSession();if(PortfolioGitHub.role==='admin')document.querySelector('.library-heading>a').href='index.html?personal=1';$('#logout').hidden=false;let locals=[],published=[];let localError=false,remoteError=false;
   const results=await Promise.allSettled([PortfolioDrafts.list(owner),PortfolioGitHub.list()]);
   if(results[0].status==='fulfilled')locals=results[0].value;else localError=true;
   if(results[1].status==='fulfilled')published=results[1].value;else remoteError=true;

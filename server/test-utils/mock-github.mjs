@@ -25,7 +25,7 @@ export function createMockGitHub(){
   if(path.startsWith('/contents/')){
    const file=decodeURIComponent(path.slice('/contents/'.length)),ref=u.searchParams.get('ref')||'main';const commit=r.commits.get(ref==='main'?r.head:ref);if(!commit)return Response.json({},{status:404});const files=r.trees.get(commit.tree);
    if(files.has(file)){const sha=files.get(file),bytes=r.blobs.get(sha);return Response.json({sha,content:bytes.length>1048576?'':bytes.toString('base64')});}
-   const dirs=new Set([...files.keys()].filter(p=>p.startsWith(file+'/')).map(p=>p.slice(file.length+1).split('/')[0]));return dirs.size?Response.json([...dirs].map(name=>({name,type:'dir'}))):Response.json({},{status:404});
+   const dirs=new Set([...files.keys()].filter(p=>p.startsWith(file+'/')).map(p=>p.slice(file.length+1).split('/')[0]));return dirs.size?Response.json([...dirs].map(name=>({name,type:files.has(file+'/'+name)?'file':'dir'}))):Response.json({},{status:404});
   }
   throw Error('Unmocked '+method+' '+path);
  }};return mock;

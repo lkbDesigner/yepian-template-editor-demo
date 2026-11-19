@@ -1,10 +1,15 @@
 (() => {
 'use strict';
-let token=null,accountId=null,phone=null,expires=0,editorOwner=null,service=null,busy=false;
+let token=null,accountId=null,phone=null,expires=0,role='user',roleVerified=false,editorOwner=null,service=null,busy=false;
 const templateBase=new URL('.',document.currentScript.src);
 const sessionKey='portfolio-session:'+new URL('../',templateBase).pathname;
 function updateAccountUI(){
- const signedIn=!!(token&&phone&&expires>Date.now());
+ const signedIn=!!(token&&phone&&expires>Date.now()),admin=signedIn&&roleVerified&&role==='admin';
+ document.documentElement.classList.toggle('role-admin',admin);
+ document.querySelectorAll('[data-my-templates]').forEach(el=>el.textContent=admin?'审核管理':'我的模板');
+ document.querySelectorAll('[data-admin-reviews]').forEach(el=>el.hidden=!admin);
+ document.querySelectorAll('[data-account-role]').forEach(el=>{el.hidden=!admin;el.textContent=admin?'管理员':'';});
+ const example=document.querySelector('.template-edit-entry');if(example){const personal=new URLSearchParams(location.search).get('personal')==='1';example.firstChild.textContent=admin&&!personal?'进入审核管理 ':'编辑模板 ';}
  document.querySelectorAll('[data-account-login]').forEach(el=>el.hidden=signedIn);
  document.querySelectorAll('[data-account-user]').forEach(el=>el.hidden=!signedIn);
  document.querySelectorAll('[data-account-phone]').forEach(el=>el.textContent=signedIn?phone:'');
@@ -12,22 +17,22 @@ function updateAccountUI(){
 }
 function clearSession(expectedToken=token){
  if(expectedToken!==token)return;
- const old=token;token=null;accountId=null;phone=null;expires=0;
+ const old=token;token=null;accountId=null;phone=null;expires=0;role='user';roleVerified=false;
  try{const stored=JSON.parse(localStorage.getItem(sessionKey)||'null');if(!stored||stored.token===old)localStorage.removeItem(sessionKey);}catch{}
  updateAccountUI();
 }
 function storeSession(session){
- token=session.token||token;accountId=session.siteId;phone=session.phone;expires=session.expires;
- try{localStorage.setItem(sessionKey,JSON.stringify({token,siteId:accountId,phone,expires}));}catch{}
+ token=session.token||token;accountId=session.siteId;phone=session.phone;expires=session.expires;role=session.role==='admin'?'admin':'user';roleVerified=true;
+ try{localStorage.setItem(sessionKey,JSON.stringify({token,siteId:accountId,phone,expires,role}));}catch{}
  updateAccountUI();
 }
 function restoreStoredSession(){
  try{const stored=JSON.parse(localStorage.getItem(sessionKey)||'null');
   if(stored&&/^[a-f0-9]{64}$/.test(stored.token)&&/^[a-f0-9]{24}$/.test(stored.siteId)&&/^\d{11}$/.test(stored.phone)&&Number.isFinite(stored.expires)&&stored.expires>Date.now()){
-   token=stored.token;accountId=stored.siteId;phone=stored.phone;expires=stored.expires;return;
+   token=stored.token;accountId=stored.siteId;phone=stored.phone;expires=stored.expires;role='user';roleVerified=false;return;
   }
  }catch{}
- token=null;accountId=null;phone=null;expires=0;
+ token=null;accountId=null;phone=null;expires=0;role='user';roleVerified=false;
 }
 restoreStoredSession();
 
@@ -82,14 +87,17 @@ async function authenticate(expectedAccount=null){
  if(token){try{const checkedToken=token;const session=await api('/api/session',{},true);if(token!==checkedToken)throw Error('登录状态已变化，请重试');if(expectedAccount&&session.siteId!==expectedAccount)throw Error('当前作品属于其他账号，请切换回原账号后继续编辑');storeSession(session);return;}catch(err){if(err.status!==401)throw err;}}
  await login(expectedAccount);
 }
-async function beginEditing(destination){
+async function beginEditing(destination,options={}){
  if(busy)return;busy=true;
  const editing=new URL(destination,location.href).pathname.endsWith('/editor.html');dialog.dataset.intent=editing?'editor':'library';dialog.querySelector('h2').textContent=editing?'登录后编辑模板':'登录后查看我的模板';
  try{
   await authenticate();
   const nonce=crypto.randomUUID();sessionStorage.setItem('portfolio-entry:'+nonce,JSON.stringify({token,accountId,phone,expires,at:Date.now()}));
-  const url=new URL(destination,location.href);url.searchParams.set('entry',nonce);location.assign(url.href);
- }catch(err){if(!err.cancelled)entryError(err.message,()=>beginEditing(destination));}
+  let url=new URL(destination,location.href);
+  if(options.workspace)url=new URL(role==='admin'?'../0.design 首页/admin-reviews.html':'../0.design 首页/my-templates.html',templateBase);
+  if(role==='admin'&&url.pathname.endsWith('/editor.html')&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1')url=new URL('../0.design 首页/admin-reviews.html',templateBase);
+  url.searchParams.set('entry',nonce);location.assign(url.href);
+ }catch(err){if(!err.cancelled)entryError(err.message,()=>beginEditing(destination,options));}
  finally{busy=false;}
 }
 function entryError(message,retry){
@@ -113,6 +121,7 @@ async function enterEditor(){
  try{
   url=receiveSession();if(!token)throw Error('需要登录');
   await connect();const session=await api('/api/session',{},true);storeSession(session);editorOwner=accountId;
+  if(role==='admin'&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1'){location.replace(new URL('../0.design 首页/admin-reviews.html',templateBase).href);return null;}
   document.documentElement.removeAttribute('data-auth-pending');return accountId;
  }catch{
   const back=new URL('index.html',location.href);back.searchParams.set('edit','1');
@@ -126,7 +135,7 @@ async function logout(){
 }
 async function loginOnHome(){
  if(busy)return;busy=true;dialog.dataset.intent='home';dialog.querySelector('h2').textContent='登录账号';
- try{await authenticate();}catch(err){if(!err.cancelled)entryError(err.message,loginOnHome);}finally{busy=false;}
+ try{await authenticate();if(role==='admin')location.assign(new URL('../0.design 首页/admin-reviews.html',templateBase).href);}catch(err){if(!err.cancelled)entryError(err.message,loginOnHome);}finally{busy=false;}
 }
 async function packDraft(draft,progress){
  let count=0,done=0;
@@ -159,10 +168,10 @@ async function hydrateDraft(record,cached){
  }
  const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:'editing'};return state;
 }
-window.PortfolioGitHub={enterEditor,logout,accountSession,open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},
+window.PortfolioGitHub={enterEditor,logout,accountSession,async adminSession(){await accountSession();return api('/api/admin/session',{},true);},async reviews(){await authenticate();return api('/api/admin/reviews',{},true);},open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},
  async read(draftId){await authenticate(editorOwner||accountId);return api('/api/portfolio/load',{draftId},true);},
  hydrate:hydrateDraft,
- get accountId(){return accountId;},get phone(){return phone;},
+ get accountId(){return accountId;},get phone(){return phone;},get role(){return roleVerified?role:'user';},
  async save(draft,progress=()=>{}){
   if(busy)throw Error('正在保存，请稍候');busy=true;const owner=editorOwner||draft.owner||accountId;
   try{
@@ -172,10 +181,12 @@ window.PortfolioGitHub={enterEditor,logout,accountSession,open:beginEditing,asyn
   }catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，本机资料仍保留，请稍后再次保存');throw err;}finally{busy=false;}
  }
 };
-document.querySelectorAll('[data-my-templates]').forEach(button=>button.addEventListener('click',()=>beginEditing(new URL('../0.design 首页/my-templates.html',templateBase).href)));
+document.querySelectorAll('[data-my-templates]').forEach(button=>button.addEventListener('click',()=>beginEditing(new URL('../0.design 首页/my-templates.html',templateBase).href,{workspace:true})));
+document.querySelectorAll('[data-admin-reviews]').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();beginEditing(new URL('../0.design 首页/admin-reviews.html',templateBase).href);}));
 document.querySelectorAll('[data-account-login]').forEach(button=>{
  const group=document.createElement('span');group.dataset.accountUser='';group.className='account-user';group.hidden=true;
  const number=document.createElement('span');number.dataset.accountPhone='';group.append(number);
+ const badge=document.createElement('small');badge.dataset.accountRole='';badge.hidden=true;group.append(badge);
  const out=document.createElement('button');out.type='button';out.textContent='退出登录';out.dataset.accountLogout='';group.append(out);button.before(group);
  button.addEventListener('click',loginOnHome);
 });
@@ -187,7 +198,7 @@ async function verifyDisplayedSession(){
  if(!token)return;
  try{await connect();const checkedToken=token;const session=await api('/api/session',{},true);if(token===checkedToken)storeSession(session);}catch(err){if(err.status===401)clearSession();}
 }
-if(document.querySelector('[data-account-login]'))verifyDisplayedSession();
+if(document.querySelector('[data-account-login],.template-edit-entry'))verifyDisplayedSession();
 addEventListener('pageshow',e=>{if(e.persisted){restoreStoredSession();updateAccountUI();verifyDisplayedSession();}});
 addEventListener('storage',e=>{
  if(e.key!==sessionKey&&e.key!==null)return;
@@ -196,9 +207,10 @@ addEventListener('storage',e=>{
   dispatchEvent(new Event('portfolio-session-ended'));
  }else verifyDisplayedSession();
 });
+if(new URLSearchParams(location.search).get('personal')==='1')document.querySelectorAll('#portfolio-grid a').forEach(link=>{const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.pathname===new URL('index.html',templateBase).pathname){url.searchParams.set('personal','1');link.href=url.href;}});
 const entry=document.querySelector('.template-edit-entry');
 if(entry){
- entry.addEventListener('click',e=>{e.preventDefault();beginEditing(entry.href);});
+ entry.addEventListener('click',e=>{e.preventDefault();const url=new URL(entry.href,location.href);if(new URLSearchParams(location.search).get('personal')==='1'){url.searchParams.set('personal','1');url.searchParams.set('from','templates');}beginEditing(url.href);});
  const params=new URLSearchParams(location.search);
  if(params.has('edit')){
   const destination=new URL(entry.href,location.href);

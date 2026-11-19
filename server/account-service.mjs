@@ -1,5 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
+import {listSubmittedReviews} from './reviews.mjs';
 import { REPOSITORY } from './save-worker.mjs';
 import { listPortfolios } from './portfolio-save.mjs';
 import {DATA_REPOSITORY,savePrivateDraft,loadPrivateDraft,listPrivateDrafts,uploadDraftAsset,downloadDraftAsset} from './private-drafts.mjs';
@@ -67,6 +68,11 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(path.startsWith('/api/admin/')){
         if(role!=='admin')return reply({error:'只有管理员可以访问审核管理'},403);
         if(path==='/api/admin/session')return reply({authorized:true,role:'admin'});
+        if(path==='/api/admin/reviews'){
+          const tasks=await listSubmittedReviews(githubFetch),accounts=await readAccounts();
+          const phones=new Map(Object.entries(accounts).map(([phone,data])=>[data.siteId,phone]));
+          return reply({reviews:tasks.map(task=>({...task,ownerPhone:phones.get(task.ownerId)||null})),submissionEnabled:false});
+        }
       }
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/portfolios'){
