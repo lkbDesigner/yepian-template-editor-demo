@@ -26,5 +26,5 @@ const server = createServer(async (incoming, outgoing) => {
     outgoing.end(JSON.stringify({ error: "本机保存服务暂时不可用" }));
   }
 });
-server.requestTimeout = 180000;
+server.requestTimeout = 600000;
 server.listen(8767, "127.0.0.1", () => console.log("Shared save API ready on http://127.0.0.1:8767 (GitHub credentials remain in gh CLI)"));

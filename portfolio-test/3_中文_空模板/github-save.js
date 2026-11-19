@@ -35,18 +35,18 @@ const dialog=document.createElement('dialog');dialog.className='github-dialog';
 dialog.innerHTML=`<form><h2>登录后编辑模板</h2><p>输入手机号后继续：新用户设置密码，已有账号输入密码。手机号仅作为测试账号，不发送短信。</p><label>手机号<input name="phone" inputmode="numeric" autocomplete="username" pattern="[0-9]{11}" maxlength="11" required placeholder="11 位手机号"></label><label class="password-step" hidden>密码<input name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128"></label><label class="confirm-step" hidden>确认密码<input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128"></label><p class="github-error" role="alert"></p><div class="github-actions"><button type="button" data-cancel>取消</button><button type="submit" class="primary">继续</button></div></form>`;
 document.body.append(dialog);
 const form=dialog.querySelector('form'),error=dialog.querySelector('.github-error');
-function connectionError(path){return Error(path==='/api/portfolio'?'保存服务连接中断，本机草稿仍保留，请稍后再保存。':'登录服务暂时无法连接，请点击继续重试；仍失败时请刷新页面。');}
+function connectionError(path){return Error(path.startsWith('/api/portfolio')?'保存服务连接中断，本机草稿仍保留，请稍后再保存。':'登录服务暂时无法连接，请点击继续重试；仍失败时请刷新页面。');}
 async function api(path,body,auth=false){
  await connect();
  const requestToken=token;
- const request=()=>fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+requestToken}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(path==='/api/portfolio'?180000:20000)});
+ const request=()=>fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+requestToken}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(path==='/api/portfolio/asset'||path==='/api/portfolio/file'?300000:path==='/api/portfolio'?180000:20000)});
  let response;
  try{response=await request();}
  catch{
   service=null;
   // Retry only non-writing authentication operations. Registration and saves
   // may already have reached the server, so never automatically replay them.
-  if(!['/api/start','/api/login','/api/session','/api/portfolios'].includes(path))throw connectionError(path);
+  if(!['/api/start','/api/login','/api/session','/api/portfolios','/api/portfolio/load','/api/portfolio/file'].includes(path))throw connectionError(path);
   try{await connect();response=await request();}catch{service=null;throw connectionError(path);}
  }
  const result=await response.json().catch(()=>({error:'登录或保存服务返回异常，请稍后重试'}));
@@ -71,10 +71,9 @@ function login(expectedAccount=null){return new Promise((resolve,reject)=>{
  catch(err){error.textContent=err.message;}finally{working=false;submit.disabled=false;}};
  dialog.showModal();form.phone.focus();
  });}
-function showResult(result){
+function showResult(){
  const output=document.createElement('dialog');output.className='github-dialog';
- output.innerHTML='<h2>已保存到 GitHub</h2><p>网页首次生成或更新可能需要几分钟。继续编辑后再次保存，会更新同一个网页。</p><p><a target="_blank" rel="noopener" data-site>打开作品集网页 ↗</a></p><p><a target="_blank" rel="noopener" data-commit>查看 GitHub 保存记录 ↗</a></p><button autofocus>继续编辑</button>';
- output.querySelector('[data-site]').href=result.url;output.querySelector('[data-commit]').href=result.commitUrl;
+ output.innerHTML='<h2>已私有保存</h2><p>模板、附件和补充资料已保存，当前状态为“编辑中”。保存不会生成或更新公开网页。</p><button autofocus>继续编辑</button>';
  output.querySelector('button').onclick=()=>output.close();output.onclose=()=>output.remove();document.body.append(output);output.showModal();
 }
 async function authenticate(expectedAccount=null){
@@ -129,17 +128,50 @@ async function loginOnHome(){
  if(busy)return;busy=true;dialog.dataset.intent='home';dialog.querySelector('h2').textContent='登录账号';
  try{await authenticate();}catch(err){if(!err.cancelled)entryError(err.message,loginOnHome);}finally{busy=false;}
 }
-window.PortfolioGitHub={enterEditor,logout,accountSession,open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},get accountId(){return accountId;},get phone(){return phone;},async save(draftId,html,title){
- if(busy)throw Error('正在保存，请稍候');busy=true;const owner=editorOwner||accountId;
- try{
-  await authenticate(owner);let result;
-  try{result=await api('/api/portfolio',{draftId,html,title},true);}
-  catch(err){if(err.status!==401)throw err;await authenticate(owner);result=await api('/api/portfolio',{draftId,html,title},true);}
-  if(!result.saved)throw Error('GitHub 尚未确认保存成功');showResult(result);return result;
+async function packDraft(draft,progress){
+ let count=0,done=0;
+ function countFiles(value){if(!value||typeof value!=='object')return;if(typeof value.data==='string'&&value.data.startsWith('data:')&&typeof value.name==='string'){count++;return;}for(const child of Object.values(value))countFiles(child);}
+ countFiles(draft);
+ async function walk(value){
+  if(!value||typeof value!=='object')return value;
+  if(typeof value.data==='string'&&value.data.startsWith('data:')&&typeof value.name==='string'){
+   progress('正在保存附件 '+(++done)+' / '+count);
+   let ref=value.storage;
+   if(!ref||ref.name!==value.name||ref.size!==value.size||ref.type!==(value.type||'application/octet-stream')){
+    ref=(await api('/api/portfolio/asset',{draftId:draft.id,file:{name:value.name,size:value.size,type:value.type||'',data:value.data}},true)).file;value.storage=ref;
+   }
+   return ref;
+  }
+  if(Array.isArray(value)){const result=[];for(const v of value)result.push(await walk(v));return result;}
+  const result={};for(const [key,v]of Object.entries(value)){if(['remote','github','owner','localBackup'].includes(key)&&value===draft)continue;result[key]=await walk(v);}return result;
  }
- catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，请稍后重试；本机草稿仍保留');throw err;}
- finally{busy=false;}
-}};
+ return walk(draft);
+}
+async function hydrateDraft(record,cached){
+ const files=new Map();
+ function collect(v){if(!v||typeof v!=='object')return;if(v.storage?.proof&&v.data){files.set(v.storage.proof,v);return;}for(const child of Object.values(v))collect(child);}
+ collect(cached);
+ async function walk(v){
+  if(!v||typeof v!=='object')return v;
+  if(v.__privateAsset===1){if(!files.has(v.proof))files.set(v.proof,(await api('/api/portfolio/file',{draftId:record.draftId,file:v},true)).file);return structuredClone(files.get(v.proof));}
+  if(Array.isArray(v)){const result=[];for(const item of v)result.push(await walk(item));return result;}
+  const result={};for(const [key,child]of Object.entries(v))result[key]=await walk(child);return result;
+ }
+ const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:'editing'};return state;
+}
+window.PortfolioGitHub={enterEditor,logout,accountSession,open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},
+ async read(draftId){await authenticate(editorOwner||accountId);return api('/api/portfolio/load',{draftId},true);},
+ hydrate:hydrateDraft,
+ get accountId(){return accountId;},get phone(){return phone;},
+ async save(draft,progress=()=>{}){
+  if(busy)throw Error('正在保存，请稍候');busy=true;const owner=editorOwner||draft.owner||accountId;
+  try{
+   await authenticate(owner);const state=await packDraft(draft,progress);progress('正在保存模板…');
+   const input={draftId:draft.id,state,baseRevision:draft.remote?.revision||null,requestId:crypto.randomUUID()};
+   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('私有保存尚未完成，请重试');showResult();return result;
+  }catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，本机资料仍保留，请稍后再次保存');throw err;}finally{busy=false;}
+ }
+};
 document.querySelectorAll('[data-my-templates]').forEach(button=>button.addEventListener('click',()=>beginEditing(new URL('../0.design 首页/my-templates.html',templateBase).href)));
 document.querySelectorAll('[data-account-login]').forEach(button=>{
  const group=document.createElement('span');group.dataset.accountUser='';group.className='account-user';group.hidden=true;

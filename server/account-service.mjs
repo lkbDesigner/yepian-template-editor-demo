@@ -1,7 +1,8 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
-import { REPOSITORY, handleRequest } from './save-worker.mjs';
-import { savePortfolio, listPortfolios } from './portfolio-save.mjs';
+import { REPOSITORY } from './save-worker.mjs';
+import { listPortfolios } from './portfolio-save.mjs';
+import {DATA_REPOSITORY,savePrivateDraft,loadPrivateDraft,listPrivateDrafts,uploadDraftAsset,downloadDraftAsset} from './private-drafts.mjs';
 const origin = 'https://lkbdesigner.github.io';
 const hex = n => randomBytes(n).toString('hex');
 export function createAccountService({directory, githubFetch, allowedOrigins=[origin]}) {
@@ -10,7 +11,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
   const headers = {'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Content-Type':'application/json','Vary':'Origin'};
   const reply = (data,status=200) => Response.json(data,{status,headers});
   const filename = directory + '/accounts.json';
-  async function boundedBody(request,limit){const reader=request.body?.getReader();if(!reader)throw Error('missing body');let length=0;const chunks=[];for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>limit){await reader.cancel();throw Error('body too large')}chunks.push(Buffer.from(value))}return Buffer.concat(chunks).toString('utf8')}
+  async function boundedBody(request,limit){const reader=request.body?.getReader();if(!reader)throw Error('missing body');let length=0;const chunks=[];for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>limit){await reader.cancel();throw Object.assign(Error('上传资料过大，请分批上传附件'),{status:413})}chunks.push(Buffer.from(value))}return Buffer.concat(chunks).toString('utf8')}
 
   async function readAccounts(){try{return JSON.parse(await readFile(filename,'utf8'))}catch(e){if(e.code==='ENOENT')return {};throw e}}
   async function commit(accounts){await mkdir(directory,{recursive:true,mode:0o700});await writeFile(filename+'.tmp',JSON.stringify(accounts),{mode:0o600});await rename(filename+'.tmp',filename)}
@@ -23,7 +24,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
     const accepted=allowedOrigins.includes(source);
     const reply=(data,status=200)=>Response.json(data,{status,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{'Access-Control-Allow-Origin':origin})}});
     if(request.method==='OPTIONS')return new Response(null,{status:accepted?204:403,headers:{...headers,...(accepted?{'Access-Control-Allow-Origin':source}:{})}});
-    if(path==='/api/status')return reply({ready:true,accounts:true,portfolios:true,myTemplates:true,mode:'local-github',repository:REPOSITORY});
+    if(path==='/api/status')return reply({ready:true,accounts:true,portfolios:true,myTemplates:true,privateDrafts:true,mode:'local-github',repository:REPOSITORY,dataRepository:DATA_REPOSITORY});
     if(!accepted)return reply({error:'请求来源不被允许'},403);
     try {
       if(path==='/api/start'||path==='/api/register'||path==='/api/login'){
@@ -63,16 +64,28 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
       if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId,phone:account.phone,expires:account.expires});
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
-      if(path==='/api/portfolios')return reply({templates:await listPortfolios(account,githubFetch)});
+      if(path==='/api/portfolios'){
+        const [drafts,legacy]=await Promise.all([listPrivateDrafts(account,githubFetch),listPortfolios(account,githubFetch)]);
+        const records=new Map(legacy.map(item=>[item.draftId,{...item,legacy:true}]));
+        for(const draft of drafts){const old=records.get(draft.draftId);records.set(draft.draftId,{...draft,...(old?.url?{legacyUrl:old.url}:{})});}
+        return reply({templates:[...records.values()]});
+      }
+      if(path==='/api/portfolio/load'||path==='/api/portfolio/asset'||path==='/api/portfolio/file'){
+        if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
+        const input=JSON.parse(await boundedBody(request,path.endsWith('/asset')?72*1024*1024:64*1024));
+        if(path.endsWith('/load'))return reply(await loadPrivateDraft(input,account,githubFetch));
+        if(path.endsWith('/asset'))return reply({file:await uploadDraftAsset(input,account,githubFetch)});
+        return reply(await downloadDraftAsset(input,account,githubFetch));
+      }
       if(path==='/api/portfolio'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
-        const body=JSON.parse(await boundedBody(request,48*1024*1024));
-        return reply(await savePortfolio(body,account,githubFetch));
+        const body=JSON.parse(await boundedBody(request,6*1024*1024));
+        return reply(await savePrivateDraft(body,account,githubFetch));
       }
       if(path==='/api/save'){
         const body=JSON.parse(await boundedBody(request,12*1024*1024));if(body.siteId!==account.siteId)return reply({error:'不能修改其他用户的页面'},403);
-        const secured=new Request(request.url,{method:'POST',headers:{'Origin':origin,'Content-Type':'application/json','Authorization':`Bearer ${account.editKey}`},body:JSON.stringify(body)});
-        return handleRequest(secured,{GITHUB_TOKEN:'local-gh-transport'},{githubFetch});
+        return reply({error:'旧版公开保存已停用，请使用新版私有模板编辑器'},410);
+
       }
       return reply({error:'接口不存在'},404);
     }catch(error){return reply({error:error.status?error.message:'服务暂时不可用，请稍后重试'},error.status||502)}

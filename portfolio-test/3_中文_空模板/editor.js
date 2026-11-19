@@ -9,18 +9,20 @@ function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');cl
 try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}catch{toast('浏览器存储不可用，请使用备份资料');}
 async function get(id){if(!db||!id)return null;return new Promise((resolve,reject)=>{let r=db.transaction('drafts').objectStore('drafts').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 async function save(announce=false){if(resetting)return false;clearTimeout(timer);if(pending&&announce){toast('请先保存或取消作品资料弹窗');return false;}if(!db){toast('存储不可用，请下载备份');return false;}
- const titleFields=['home-top','global'].flatMap(id=>E.definitions.find(d=>d.id===id)?.fields||[]);state.title=titleFields.filter(f=>!state.hidden?.[f.id]&&['text','textarea'].includes(f.type)).map(f=>state.values[f.id]).find(v=>typeof v==='string'&&v.trim())?.trim().slice(0,100)||'中文作品集模板';
+ const titleFields=['home-top','global'].flatMap(id=>E.definitions.find(d=>d.id===id)?.fields||[]);state.title=titleFields.filter(f=>!state.hidden?.[f.id]&&['text','textarea'].includes(f.type)).map(f=>state.values[f.id]).find(v=>typeof v==='string'&&v.trim())?.trim().slice(0,90)||'中文作品集模板';if(state.localBackup)state.title+=' · 本机备份';
  const snapshot=structuredClone(state);try{await(saving=saving.catch(()=>{}).then(()=>new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(snapshot);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);})));if(state.updated===snapshot.updated)$('#status').textContent='已保存到本机';localStorage.setItem(current,state.id);if(announce)toast('已保存到当前浏览器');return true;}catch{$('#status').textContent='保存失败';toast('保存失败，请下载备份');return false;}}
 const params=new URLSearchParams(location.search);const id=params.get('draft')||localStorage.getItem(current);
-try{state=params.has('new')?E.empty():await get(id);}catch{state=null;}
-if(params.has('draft')&&!params.has('new')&&(!state||state.owner&&state.owner!==PortfolioGitHub.accountId)){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
-state||=E.empty();
-if(state.owner&&state.owner!==PortfolioGitHub.accountId)state=E.empty();
-state.owner=PortfolioGitHub.accountId;
+let restoreNotice='';
+try{
+ if(params.has('new')||!id)state=E.empty();
+ else{const restored=await PortfolioDrafts.resolve(id,PortfolioGitHub.accountId);state=restored.state;restoreNotice=restored.notice;}
+}catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';return;}
+if(params.has('draft')&&!params.has('new')&&!state){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
+state||=E.empty();state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
 if(footerMigration.conflicts)toast('联系与页脚已合并，优先沿用首页内容；原有差异仍保留在资料备份中');
 params.delete('new');params.set('draft',state.id);history.replaceState(null,'',location.pathname+'?'+params);localStorage.setItem(current,state.id);
-function dirty(){if(locating)locatorUI();state.updated=Math.max(Date.now(),state.updated+1);$('#status').textContent='正在保存…';clearTimeout(timer);timer=setTimeout(()=>save(),650);}
+function dirty(){if(locating)locatorUI();state.updated=Math.max(Date.now(),state.updated+1);$('#draft-state').textContent='编辑中 · 未保存';$('#status').textContent='正在保存…';clearTimeout(timer);timer=setTimeout(()=>save(),650);}
 function post(message,modal=false){if(!modal&&!ready){queue.push(message);return;}(modal?itemFrame:frame).contentWindow?.postMessage({type:'template-patch',...message},'*');}
 function dataFor(item){if(item==='pending')return pending;if(!item)return state;return Object.values(state.repeats).flat().find(i=>i.id===item);}
 function context(el){return {id:el.dataset.field,item:el.dataset.item||null};}
@@ -46,7 +48,7 @@ function panel(){const root=$('#panel'),position=root.scrollTop,openedRepeats=[.
  root.innerHTML=`${page!=='home'?`<div class="visibility"><span>在网站中显示${esc(E.pages[page].title)}</span><input type="checkbox" data-tab-toggle ${state.tabs[page]!==false?'checked':''}></div>`:''}`+defs.map(d=>{
   if(state.modules[d.id]===false&&!d.locked)return `<div class="removed"><b>${esc(d.label)} · ${d.shared?'本页已隐藏':'已删除'}</b><button data-restore-module="${d.id}">${d.shared?'恢复本页展示':'撤回删除'}</button></div>`;
   return `<details class="module" data-module="${d.id}" ${opened===d.id?'open':''}><summary><b>${esc(d.label)}</b>${d.locked?'<small>固定模块</small>':`<button data-delete-module="${d.id}">${d.shared?'隐藏本页':'删除模块'}</button>`}</summary><div class="module-content">${d.shared?'<p class="note">内容全站同步；隐藏本页不影响其他页面。简历与“个人标识与简历”共用。</p>':''}${d.fields.map(f=>inputHTML(f,state)).join('')}${d.collections.map(collectionHTML).join('')}</div></details>`;
- }).join('')+`<p class="note">空白内容按原网页结构生成。所有删除均可撤回；作品附件只保存在本机，供后续人工制作。</p>`;
+ }).join('')+`<p class="note">空白内容按原网页结构生成。所有删除均可撤回；作品附件会随保存一同私有保存，供后续人工制作，不会公开。</p>`;
  root.scrollTop=position;for(const id of openedRepeats){const el=root.querySelector('[data-repeat="'+id+'"]');if(el)el.open=true;}
  root.querySelectorAll('details.module').forEach(el=>el.addEventListener('toggle',()=>{if(!el.open)return;const id=el.dataset.module;if(opened===id)return;opened=id;root.querySelectorAll('details.module').forEach(other=>{if(other!==el)other.open=false;});scrollModule(id);el.scrollIntoView({block:'nearest',behavior:'smooth'});}));
 }
@@ -199,13 +201,21 @@ addEventListener('message',e=>{
 });
 $('#save-item').onclick=()=>{state.repeats[editing.cid][state.repeats[editing.cid].findIndex(i=>i.id===editing.id)]=pending;closeItem();dirty();refresh();toast('作品资料已更新');};
 $('#close-item').onclick=$('#cancel-item').onclick=closeItem;$('#item-dialog').addEventListener('cancel',()=>{pending=null;editing=null;closePalette();if(locating)locatorUI();});
+function copyFileStorage(current,snapshot){
+ if(!current||!snapshot||typeof current!=='object'||typeof snapshot!=='object')return;
+ if(current.data&&current.data===snapshot.data&&snapshot.storage){current.storage=snapshot.storage;return;}
+ for(const key of Object.keys(current))if(snapshot[key])copyFileStorage(current[key],snapshot[key]);
+}
 async function saveGitHub(){
  if(publishing||resetting)return;
- if(!await save())return;
  if(pending){toast('请先保存或取消作品资料弹窗');return;}
- publishing=true;const button=$('#save');button.disabled=true;$('#reset-template').disabled=true;$('#exit').disabled=true;button.textContent='正在保存…';
- try{const result=await PortfolioGitHub.save(state.id,E.publicHTML(structuredClone(state),'home'),state.title);state.github={url:result.url,commitUrl:result.commitUrl,savedAt:Date.now()};await save();toast('已保存到 GitHub');}
- catch(error){toast(error.message);}
+ if(!await save())return;
+ const snapshot=structuredClone(state);publishing=true;const button=$('#save');button.disabled=true;$('#reset-template').disabled=true;$('#exit').disabled=true;button.textContent='正在保存…';
+ try{
+  const result=await PortfolioGitHub.save(snapshot,message=>button.textContent=message);copyFileStorage(state,snapshot);
+  state.remote={revision:result.revision,savedAt:result.updatedAt,savedUpdated:snapshot.updated,status:'editing'};delete state.github;await save();
+  $('#draft-state').textContent=state.updated===snapshot.updated?'编辑中 · 已保存':'编辑中 · 未保存';toast(state.updated===snapshot.updated?'已私有保存，状态为编辑中':'本次内容已保存，后续修改请再次保存');
+ }catch(error){toast(error.message);}
  finally{publishing=false;button.disabled=false;$('#reset-template').disabled=false;$('#exit').disabled=false;button.textContent='保存';}
 }
 $('#save').onclick=saveGitHub;$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
@@ -220,7 +230,7 @@ $('#confirm-reset').onclick=async()=>{
  if(!db){$('#reset-error').textContent='本机存储不可用，未清空资料。请先备份后重试。';$('#reset-error').hidden=false;return;}
  resetting=true;draftEpoch++;clearTimeout(timer);
  resetDialog.querySelectorAll('button').forEach(b=>b.disabled=true);$('#confirm-reset').textContent='正在还原…';
- const fresh=E.empty();fresh.id=state.id;fresh.owner=state.owner;fresh.updated=Math.max(Date.now(),state.updated+1);
+ const fresh=E.empty();fresh.id=state.id;fresh.owner=state.owner;if(state.remote)fresh.remote=structuredClone(state.remote);fresh.updated=Math.max(Date.now(),state.updated+1);
  try{
   // Wait for queued saves, then replace only the current draft in one transaction.
   await (saving=saving.catch(()=>{}).then(()=>new Promise((resolve,reject)=>{
@@ -230,7 +240,7 @@ $('#confirm-reset').onclick=async()=>{
   exitLocator();state=fresh;pending=null;editing=null;queue=[];selection=null;scroll=0;previewLoad=null;
   closePalette();if($('#item-dialog').open)$('#item-dialog').close();
   page='home';opened='home-top';tabs();panel();$('#panel').scrollTop=0;draw(false);
-  $('#status').textContent='已保存到本机';resetDialog.close();toast('已还原为空白模板，编辑和上传内容已清空');
+  $('#draft-state').textContent='编辑中 · 未保存';$('#status').textContent='已保存到本机';resetDialog.close();toast('已还原为空白模板，编辑和上传内容已清空');
  }catch{ $('#status').textContent='还原失败';$('#reset-error').textContent='还原未完成，原资料仍保留。请重试或先备份。';$('#reset-error').hidden=false;
  }finally{resetting=false;resetDialog.querySelectorAll('button').forEach(b=>b.disabled=false);$('#confirm-reset').textContent='确认还原';}
 };
@@ -238,5 +248,5 @@ $('#confirm-reset').onclick=async()=>{
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveGitHub();}if(e.key==='Escape')closePalette();});
 addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing){e.preventDefault();e.returnValue='';}});
 addEventListener('portfolio-session-ended',async()=>{await save();location.href=new URL('../0.design 首页/index.html',location.href).href;});
-tabs();panel();draw(false);await save();
+tabs();panel();draw(false);await save();$('#draft-state').textContent=state.remote&&state.updated<=state.remote.savedUpdated?'编辑中 · 已保存':'编辑中 · 未保存';if(restoreNotice)toast(restoreNotice);
 })();
