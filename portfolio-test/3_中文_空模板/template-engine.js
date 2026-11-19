@@ -95,7 +95,7 @@ for(const source of TemplateSources){
  pages[source.id]={id:source.id,title:source.title,file:source.file,html:'<!doctype html>'+doc.documentElement.outerHTML};
 }
 // Share semantic footer content without replacing each page's own layout.
-const footerAliases=[],sharedFooterFields=new Map();
+const footerAliases=[],collectionAliases=[],sharedFooterFields=new Map();let sharingVersion=1;
 const homeDoc=parse(pages.home.html),homeFooter=homeDoc.querySelector('.contact-section');
 const homeDef=definitions.find(d=>d.id===homeFooter?.dataset.module);
 const resumeField=definitions.find(d=>d.id==='global')?.fields.find(f=>f.type==='resume');
@@ -109,7 +109,7 @@ function aliasField(doc,def,oldId,canonical){
  if(!canonical)return;
  sharedFooterFields.set(canonical.id,canonical);
  if(oldId!==canonical.id){
-  if(!footerAliases.some(a=>a.from===oldId))footerAliases.push({from:oldId,to:canonical.id});
+  if(!footerAliases.some(a=>a.from===oldId))footerAliases.push({from:oldId,to:canonical.id,version:sharingVersion});
   doc.querySelectorAll('[data-field="'+oldId+'"],[data-link="'+oldId+'"],[data-resume-target="'+oldId+'"]')
    .forEach(el=>{for(const attr of ['data-field','data-link','data-resume-target'])if(el.getAttribute(attr)===oldId)el.setAttribute(attr,canonical.id);});
  }
@@ -135,22 +135,54 @@ if(homeDef){
   page.html='<!doctype html>'+doc.documentElement.outerHTML;
  }
 }
+// Expertise and contact content are shared; page-level visibility remains independent.
+sharingVersion=2;
+const expertiseHome=definitions.find(d=>d.id==='home-expertise'),expertiseAbout=definitions.find(d=>d.id==='about-expertise');
+if(expertiseHome&&expertiseAbout){
+ const canonical=collections[expertiseHome.collections[0]],previous=collections[expertiseAbout.collections[0]];
+ const doc=parse(pages.about.html);
+ expertiseAbout.fields.forEach((f,i)=>{if(expertiseHome.fields[i]?.type===f.type)aliasField(doc,expertiseAbout,f.id,expertiseHome.fields[i]);});
+ if(canonical&&previous&&canonical.id!==previous.id){
+  const mappings=previous.templates.map((t,i)=>Object.fromEntries(t.fields.map((f,j)=>[f.id,canonical.templates[i%canonical.templates.length].fields[j]?.id]).filter(([,id])=>id)));
+  collectionAliases.push({from:previous.id,to:canonical.id,mappings});
+  doc.querySelectorAll('[data-list="'+previous.id+'"]').forEach(el=>el.dataset.list=canonical.id);
+  expertiseAbout.collections=expertiseAbout.collections.map(id=>id===previous.id?canonical.id:id);delete collections[previous.id];
+ }
+ expertiseHome.shared=true;expertiseHome.sharedSource='home-expertise';expertiseAbout.shared=true;expertiseAbout.sharedSource='home-expertise';pages.about.html='<!doctype html>'+doc.documentElement.outerHTML;
+}
+const topField=homeDef?.fields.find(f=>f.label==='返回顶部文字');
+for(const page of Object.values(pages)){
+ const doc=parse(page.html);
+ if(page.id.startsWith('ai-')&&topField){
+  const footer=doc.querySelector('footer.ai-footer'),def=definitions.find(d=>d.id===footer?.dataset.module);
+  const top=footer?.querySelector('a[href^="#"] [data-field]');if(top&&def)aliasField(doc,def,top.dataset.field,topField);
+ }
+ for(const def of definitions.filter(d=>d.page===page.id&&d.shared&&!d.sharedSource))def.sharedSource='home-contact';
+ page.html='<!doctype html>'+doc.documentElement.outerHTML;
+}
 function migrateSharedFooter(state){
- if(state.sharedFooterVersion===1)return {conflicts:0};
+ const version=state.sharedFooterVersion||0;if(version>=2)return {conflicts:0};
  let conflicts=0;
  for(const key of ['values','colors','hidden']){
   state[key]||={};
-  for(const {from,to} of footerAliases){
-   if(!Object.prototype.hasOwnProperty.call(state[key],from))continue;
-   const old=state[key][from],existing=state[key][to];
-   const blank=v=>v===undefined||v===null||v==='';
+  for(const {from,to,version:since} of footerAliases){
+   if((since||1)<=version||!Object.prototype.hasOwnProperty.call(state[key],from))continue;
+   const old=state[key][from],existing=state[key][to],blank=v=>v===undefined||v===null||v==='';
    if(blank(existing))state[key][to]=structuredClone(old);
    else if(!blank(old)&&JSON.stringify(existing)!==JSON.stringify(old))conflicts++;
-   // Keep legacy keys so conflicting page-specific data survives in backups.
   }
  }
- state.sharedFooterVersion=1;return {conflicts};
+ state.repeats||={};
+ for(const alias of collectionAliases){
+  const previous=state.repeats[alias.from];if(!previous)continue;
+  const filled=items=>(items||[]).some(item=>!item.deleted&&Object.values(item.values||{}).some(v=>typeof v==='string'?v.trim():v?.data||v?.__privateAsset));
+  if(filled(previous)&&!filled(state.repeats[alias.to]))state.repeats[alias.to]=previous.map(item=>{const copy=structuredClone(item),mapping=alias.mappings[item.variant%alias.mappings.length];for(const key of ['values','hidden','colors'])copy[key]=Object.fromEntries(Object.entries(item[key]||{}).map(([id,v])=>[mapping[id]||id,v]));return copy;});
+  else if(filled(previous)&&filled(state.repeats[alias.to]))conflicts++;
+  // Preserve the original collection and scalar keys for lossless backups.
+ }
+ state.sharedFooterVersion=2;return {conflicts};
 }
+
 function emptyItem(c,i=0){return{id:crypto.randomUUID(),variant:i%c.templates.length,deleted:false,values:{},hidden:{},colors:{},files:[],notes:'',links:'',style:''};}
 function empty(){return{id:crypto.randomUUID(),updated:Date.now(),values:{},hidden:{},colors:{},modules:{},tabs:Object.fromEntries(Object.keys(pages).map(p=>[p,true])),repeats:Object.fromEntries(Object.values(collections).map(c=>[c.id,Array.from({length:c.count},(_,i)=>emptyItem(c,i))]))};}
 function safeUrl(v){try{const u=new URL(v);return ['https:','http:','mailto:'].includes(u.protocol)?u.href:''}catch{return ''}}
@@ -171,13 +203,13 @@ function apply(root,fs,data,placeholder){
 }
 const extraCSS=`html{scroll-behavior:auto!important}body{overflow-x:hidden}.whole-cover{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;color:#ffffff88;font-size:16px}.whole-cover>img{width:100%;height:100%;object-fit:cover}.project-card{position:relative}.project-card>.project-copy{position:relative;z-index:1;pointer-events:none}.blank-image{display:flex;align-items:center;justify-content:center;background:#ffffff08;border:1px dashed #ffffff30;overflow:hidden;font-size:13px;min-height:48px}.blank-image>img{width:100%;height:100%;object-fit:cover}.brand-mark.blank-image{width:48px;height:48px;border-radius:50%}.portrait-frame.blank-image{aspect-ratio:520/640}.life-art.blank-image{aspect-ratio:360/240}.empty-content-image{visibility:hidden;background:#ffffff08}.editor-target{outline:2px solid #4d8bff!important;outline-offset:5px}.site-nav[aria-hidden=true]{visibility:hidden}.resume-slot{display:none}[data-module][hidden]{display:none!important}[data-list-item][hidden]{display:none!important}.article-back svg{vertical-align:middle}.template-edit-entry{display:none!important}`;
 function render(state,page='home',editor=false,placeholders=true){
- const doc=parse(pages[page].html);doc.head.querySelectorAll('meta[charset]').forEach(n=>n.remove());const meta=doc.createElement('meta');meta.setAttribute('charset','utf-8');doc.head.prepend(meta);
+ migrateSharedFooter(state);const doc=parse(pages[page].html);doc.head.querySelectorAll('meta[charset]').forEach(n=>n.remove());const meta=doc.createElement('meta');meta.setAttribute('charset','utf-8');doc.head.prepend(meta);
  doc.title='个人作品集 · '+pages[page].title;doc.querySelector('meta[name=description]')?.remove();
  const st=doc.createElement('style');st.textContent=extraCSS;doc.head.append(st);
  for(const d of definitions.filter(d=>d.page===page||d.page==='global')){
   const root=doc.querySelector('[data-module="'+d.id+'"]');if(!root)continue;if(state.modules[d.id]===false&&!d.locked){root.remove();continue;}
   for(const cid of d.collections){const c=collections[cid],container=root.querySelector('[data-list="'+cid+'"]')||(root.matches('[data-list]')?root:null);if(!container)continue;
-   for(const item of state.repeats[cid]||[]){if(item.deleted)continue;const t=c.templates[item.variant%c.templates.length];const wrap=doc.createElement('div');wrap.innerHTML=t.html;apply(wrap,t.fields,item,placeholders);const el=wrap.firstElementChild;if(!el)continue;el.dataset.item=item.id;el.dataset.collection=cid;
+   for(const item of (state.repeats[cid]||[]).filter(item=>!item.deleted).slice(0,page==='home'&&cid==='projects'?4:Infinity)){const t=c.templates[item.variant%c.templates.length];const wrap=doc.createElement('div');wrap.innerHTML=t.html;apply(wrap,t.fields,item,placeholders);const el=wrap.firstElementChild;if(!el)continue;el.dataset.item=item.id;el.dataset.collection=cid;
     if(c.project)el.dataset.route=t.target||'case-1';else if(cid==='ai-entries')el.dataset.route='ai-'+((item.variant%3)+1);
     container.append(el);
    }
@@ -222,5 +254,5 @@ function publicHTML(state,start='home'){
  const json=JSON.stringify(docs).replace(/</g,'\\u003c');
  return '<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>个人作品集</title><style>body{margin:0}iframe{border:0;width:100%;height:100dvh;display:block}</style></head><body><iframe title="个人作品集" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe><script>const docs='+json+';const frame=document.querySelector("iframe");function go(p){frame.srcdoc=docs[p]||docs.home;}go('+JSON.stringify(start)+');addEventListener("message",e=>{if(e.source===frame.contentWindow&&e.data?.type==="template-route")go(e.data.page)});<\/script></body></html>';
 }
-window.TemplateEngine={pages,definitions,collections,fields,empty,emptyItem,render,publicHTML,migrateSharedFooter,footerAliases};
+window.TemplateEngine={pages,definitions,collections,fields,empty,emptyItem,render,publicHTML,migrateSharedFooter,footerAliases,collectionAliases};
 })();

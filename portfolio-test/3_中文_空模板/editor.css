@@ -10,3 +10,5 @@
 #draft-state{font-size:12px;font-weight:400;color:#9ca8bf;margin-left:8px}
 
 #review-validation{width:min(680px,90vw);max-height:82vh;overflow:auto}#review-validation-count,#review-validation-list{padding:0 24px;color:#c6ccd8;font-size:14px;line-height:1.8}#review-validation-list p{padding:10px 12px;background:#262b35;border-radius:8px}#item-fields input[readonly],#item-fields textarea[readonly],#panel input[readonly],#panel textarea[readonly]{opacity:.85}
+
+.shared-reference,.project-manager{padding:20px}.shared-reference>button{margin:6px 6px 0 0}.project-manager-cover{display:block;width:100%;height:130px;object-fit:cover;border-radius:7px;margin-bottom:12px}

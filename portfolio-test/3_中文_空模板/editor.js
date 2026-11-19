@@ -5,7 +5,7 @@ const E=TemplateEngine,$=s=>document.querySelector(s),esc=v=>String(v??'').repla
 const reviewId=new URLSearchParams(location.search).get('review'),reviewView=!!reviewId;let submitting=false,validationIssues=[];
 function locked(){return reviewView||['submitted','reviewing'].includes(state?.remote?.status);}
 let draftEpoch=0,resetting=false,publishing=false,pendingUploads=0;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
-let locating=false,locateKey=null,locateAfterLoad=null;
+let locating=false,locateKey=null,locateAfterLoad=null,sharedEditing=null;
 const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current:'+PortfolioGitHub.accountId;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3000);}
 try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}catch{toast('浏览器存储不可用，请使用备份资料');}
@@ -23,7 +23,7 @@ try{
 if(params.has('draft')&&!params.has('new')&&!state){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
 state||=E.empty();if(!reviewView)state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
-if(footerMigration.conflicts)toast('联系与页脚已合并，优先沿用首页内容；原有差异仍保留在资料备份中');
+if(footerMigration.conflicts)restoreNotice='通用内容已合并，优先沿用首页内容；旧的差异内容仍保留在资料备份中';
 params.delete('new');params.set('draft',state.id);history.replaceState(null,'',location.pathname+'?'+params);if(!reviewView)localStorage.setItem(current,state.id);
 function dirty(){if(locked())return;if(locating)locatorUI();state.updated=Math.max(Date.now(),state.updated+1);$('#draft-state').textContent='编辑中 · 未保存';$('#status').textContent='正在保存…';clearTimeout(timer);timer=setTimeout(()=>save(),650);}
 function post(message,modal=false){if(!modal&&!ready){queue.push(message);return;}(modal?itemFrame:frame).contentWindow?.postMessage({type:'template-patch',...message},'*');}
@@ -38,19 +38,23 @@ function inputHTML(f,data,item=null){const attrs=`data-field="${f.id}" ${item?`d
  else control=`<input ${attrs} type="${f.type==='url'?'url':'text'}" value="${esc(v??f.initial??'')}" placeholder="${esc(f.placeholder)}">`;
  return `<div class="field">${title}${control}</div>`;
 }
-function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>`+state.repeats[cid].map((item,i)=>{
+function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>`+(cid==='projects'&&page==='home'?state.repeats[cid].filter(i=>!i.deleted).slice(0,4):state.repeats[cid]).map((item,i)=>{
  if(item.deleted)return `<div class="removed"><b>${esc(c.label)} ${i+1} · 已删除</b><button data-restore-item="${item.id}" data-cid="${cid}">撤回删除</button></div>`;
  const t=c.templates[item.variant%c.templates.length],title=t.fields.find(f=>f.label==='标题'||f.label==='主标题');
  const label=title?item.values[title.id]||c.label+' '+(i+1):c.label+' '+(i+1);
  const actions=`<div class="item-actions">${c.project?`<button data-edit="${item.id}" data-cid="${cid}">编辑资料</button>`:'<span></span>'}<button data-delete-item="${item.id}" data-cid="${cid}">删除</button></div>`;
- if(c.project)return `<div class="item-row"><b>${esc(label)}</b>${actions}</div>`;
+ if(c.project){const cover=t.fields.find(f=>f.type==='image'),image=item.values[cover?.id]?.data;return `<div class="item-row">${image?`<img class="project-manager-cover" src="${esc(image)}" alt="作品封面">`:''}<b>${esc(label)}</b>${actions}</div>`;}
  return `<details class="item-row" data-repeat="${item.id}"><summary>${esc(label)}</summary><div class="repeat-fields">${t.fields.map(f=>inputHTML(f,item,item.id)).join('')}${actions}</div></details>`;
- }).join('')+`<button class="add" data-add="${cid}">＋ 添加${esc(c.label)}</button>`;}
+ }).join('')+(cid==='projects'&&page==='home'?`<p class="note">首页展示作品集中的前 4 个作品，封面与内容同步。</p><button class="add" data-manage-projects>管理全部作品</button>`:`<button class="add" data-add="${cid}">＋ 添加${esc(c.label)}</button>`);}
 function panel(){const root=$('#panel'),position=root.scrollTop,openedRepeats=[...root.querySelectorAll('[data-repeat][open]')].map(e=>e.dataset.repeat);
  const defs=E.definitions.filter(d=>d.page===page||d.page==='global'&&E.pages[page].html.includes('data-module="global"'));
  root.innerHTML=`${page!=='home'?`<div class="visibility"><span>在网站中显示${esc(E.pages[page].title)}</span><input type="checkbox" data-tab-toggle ${state.tabs[page]!==false?'checked':''}></div>`:''}`+defs.map(d=>{
   if(state.modules[d.id]===false&&!d.locked)return `<div class="removed"><b>${esc(d.label)} · ${d.shared?'本页已隐藏':'已删除'}</b><button data-restore-module="${d.id}">${d.shared?'恢复本页展示':'撤回删除'}</button></div>`;
-  return `<details class="module" data-module="${d.id}" ${opened===d.id?'open':''}><summary><b>${esc(d.label)}</b>${d.locked?'<small>固定模块</small>':`<button data-delete-module="${d.id}">${d.shared?'隐藏本页':'删除模块'}</button>`}</summary><div class="module-content">${d.shared?'<p class="note">内容全站同步；隐藏本页不影响其他页面。简历与“个人标识与简历”共用。</p>':''}${d.fields.map(f=>inputHTML(f,state)).join('')}${d.collections.map(collectionHTML).join('')}</div></details>`;
+  const isShared=d.shared||d.id==='global',reference=isShared&&page!=='home'&&sharedEditing!==d.id;
+  const editableFields=d.fields.filter(f=>d.id==='global'||!E.definitions.find(m=>m.id==='global')?.fields.some(g=>g.id===f.id));
+  if(reference)return `<section class="module shared-reference" data-module="${d.id}"><b>${esc(d.label)}</b><p class="note">已复用全站共用内容，无需重复填写。修改后各 Tab 同步显示。</p><button data-edit-shared="${d.id}">${locked()?'查看共用内容':'编辑共用内容'}</button>${d.locked?'':`<button data-delete-module="${d.id}">隐藏本页</button>`}</section>`;
+  if(page==='projects'&&d.id==='projects-work')return `<section class="module project-manager" data-module="${d.id}"><b>作品集 · 全部作品</b><p class="note">在这里添加作品、上传封面和编辑资料。首页自动展示前 4 个作品。</p>${d.collections.map(collectionHTML).join('')}</section>`;
+  return `<details class="module" data-module="${d.id}" ${opened===d.id||sharedEditing===d.id?'open':''}><summary><b>${esc(d.label)}</b>${d.locked?(d.id==='global'?'<small>全站共用</small>':'<small>固定模块</small>'):`<button data-delete-module="${d.id}">${d.shared?'隐藏本页':'删除模块'}</button>`}</summary><div class="module-content">${isShared?'<p class="note">修改后全站同步；隐藏本页不影响其他页面。简历只需在“个人标识与简历”上传一次。</p>':''}${editableFields.map(f=>inputHTML(f,state)).join('')}${d.collections.map(collectionHTML).join('')}${page!=='home'&&isShared?'<button data-close-shared>收起共用内容</button>':''}</div></details>`;
  }).join('')+`<p class="note">空白内容按原网页结构生成。所有删除均可撤回；作品附件随保存一同保存，上传审核后管理员才能查看。</p>`;
  root.scrollTop=position;for(const id of openedRepeats){const el=root.querySelector('[data-repeat="'+id+'"]');if(el)el.open=true;}
  root.querySelectorAll('details.module').forEach(el=>el.addEventListener('toggle',()=>{if(!el.open)return;const id=el.dataset.module;if(opened===id)return;opened=id;root.querySelectorAll('details.module').forEach(other=>{if(other!==el)other.open=false;});scrollModule(id);el.scrollIntoView({block:'nearest',behavior:'smooth'});}));
@@ -61,7 +65,7 @@ function scrollModule(id){// Locate via sandbox-safe messages.
  frame.contentWindow.postMessage({type:'template-locate-module',id},'*');}
 // Structural updates restore the current canvas position; text and colors are patched in place.
 function refresh(){panel();draw();if(locating)locatorUI();}
-function selectPage(id){page=id;opened=E.definitions.find(d=>d.page===page)?.id;scroll=0;selection=null;closePalette();tabs();panel();$('#panel').scrollTop=0;draw(false);}
+function selectPage(id){sharedEditing=null;page=id;opened=E.definitions.find(d=>d.page===page)?.id;scroll=0;selection=null;closePalette();tabs();panel();$('#panel').scrollTop=0;draw(false);}
 // Build a stable, deduplicated traversal from the actual template schema.
 function locateCatalog(){
  const result=[],seen=new Set();
@@ -120,7 +124,7 @@ function focusLocated(target){
 function goLocated(target){
  locateKey=target.key;selection=null;closePalette();
  if(page!==target.page){queue=[];selectPage(target.page);}
- opened=target.module;panel();
+ opened=target.module;sharedEditing=target.module;panel();
  if(ready)focusLocated(target);else locateAfterLoad={target,modal:false};
  locatorUI();
 }
@@ -188,6 +192,9 @@ document.addEventListener('click',async e=>{
  if(b?.matches('[data-close-color]')){closePalette();return;}
  if(!e.target.closest('#palette,#item-palette'))closePalette();
  if(!b)return;let structural=false;
+ if(b.hasAttribute('data-manage-projects')){selectPage('projects');return;}
+ if(b.dataset.editShared){sharedEditing=b.dataset.editShared;opened=sharedEditing;panel();applyMode();scrollModule(sharedEditing);return;}
+ if(b.hasAttribute('data-close-shared')){sharedEditing=null;panel();applyMode();return;}
  if(b.dataset.delete||b.dataset.restore){const id=b.dataset.delete||b.dataset.restore,d=dataFor(b.dataset.item);d.hidden||={};d.hidden[id]=!!b.dataset.delete;if(b.dataset.item==='pending'){paintItem();drawItem();if(locating)locatorUI();return;}structural=true;}
  if(b.dataset.deleteModule||b.dataset.restoreModule){const id=b.dataset.deleteModule||b.dataset.restoreModule;state.modules[id]=!b.dataset.deleteModule;structural=true;}
  if(b.dataset.deleteItem||b.dataset.restoreItem){const id=b.dataset.deleteItem||b.dataset.restoreItem;state.repeats[b.dataset.cid].find(i=>i.id===id).deleted=!!b.dataset.deleteItem;structural=true;}
@@ -246,7 +253,7 @@ function showValidation(issues){
  $('#review-validation').showModal();
 }
 function locateValidation(issue){
- if(!issue)return;$('#review-validation').close();if(E.pages[issue.page])selectPage(issue.page);if(issue.module){opened=issue.module;panel();draw();}
+ if(!issue)return;$('#review-validation').close();if(E.pages[issue.page])selectPage(issue.page);if(issue.module){opened=issue.module;sharedEditing=issue.module;panel();draw();}
  if(issue.item&&issue.cid&&E.collections[issue.cid]?.project){showItem(issue.cid,issue.item);setTimeout(()=>{const el=issue.private?$('#item-fields [data-private="links"]')||$('#item-fields [data-private-upload]'):$('#item-fields [data-field="'+CSS.escape(issue.field||'')+'"]');el?.focus();},100);}
  else setTimeout(()=>{if(issue.field){const el=$('#panel [data-field="'+CSS.escape(issue.field)+'"]');el?.focus();if(el)touch(el);}else if(issue.module)scrollModule(issue.module);},100);
 }

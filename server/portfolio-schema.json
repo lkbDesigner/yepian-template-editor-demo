@@ -337,14 +337,14 @@
       "locked": false,
       "fields": [
         {
-          "id": "f82",
+          "id": "f41",
           "type": "text",
           "label": "模块标题",
           "initial": "专业能力"
         }
       ],
       "collections": [
-        "about-expertise-expertise"
+        "home-expertise-expertise"
       ]
     },
     {
@@ -568,9 +568,9 @@
           "initial": ""
         },
         {
-          "id": "f166",
+          "id": "f47",
           "type": "text",
-          "label": "说明文字",
+          "label": "返回顶部文字",
           "initial": ""
         }
       ],
@@ -649,9 +649,9 @@
           "initial": ""
         },
         {
-          "id": "f175",
+          "id": "f47",
           "type": "text",
-          "label": "说明文字",
+          "label": "返回顶部文字",
           "initial": ""
         }
       ],
@@ -730,9 +730,9 @@
           "initial": ""
         },
         {
-          "id": "f184",
+          "id": "f47",
           "type": "text",
-          "label": "说明文字",
+          "label": "返回顶部文字",
           "initial": ""
         }
       ],
@@ -5466,81 +5466,6 @@
               "id": "f63",
               "type": "textarea",
               "label": "描述 · 2",
-              "initial": ""
-            }
-          ]
-        }
-      ]
-    },
-    "about-expertise-expertise": {
-      "id": "about-expertise-expertise",
-      "label": "专长",
-      "project": false,
-      "templates": [
-        {
-          "target": null,
-          "fields": [
-            {
-              "id": "f74",
-              "type": "text",
-              "label": "标题",
-              "initial": ""
-            },
-            {
-              "id": "f75",
-              "type": "textarea",
-              "label": "描述",
-              "initial": ""
-            }
-          ]
-        },
-        {
-          "target": null,
-          "fields": [
-            {
-              "id": "f76",
-              "type": "text",
-              "label": "标题",
-              "initial": ""
-            },
-            {
-              "id": "f77",
-              "type": "textarea",
-              "label": "描述",
-              "initial": ""
-            }
-          ]
-        },
-        {
-          "target": null,
-          "fields": [
-            {
-              "id": "f78",
-              "type": "text",
-              "label": "标题",
-              "initial": ""
-            },
-            {
-              "id": "f79",
-              "type": "textarea",
-              "label": "描述",
-              "initial": ""
-            }
-          ]
-        },
-        {
-          "target": null,
-          "fields": [
-            {
-              "id": "f80",
-              "type": "text",
-              "label": "标题",
-              "initial": ""
-            },
-            {
-              "id": "f81",
-              "type": "textarea",
-              "label": "描述",
               "initial": ""
             }
           ]

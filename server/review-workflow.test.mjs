@@ -29,3 +29,13 @@ test('invalid or duplicate item identities cannot reach administrator HTML rende
  const state=readyDraft();state.repeats.projects[0].id='\" onclick=alert(1)';assert.equal(validateReviewDraft(state).valid,false);
  const safe=readyDraft();safe.repeats.projects.push(structuredClone(safe.repeats.projects[0]));assert.equal(validateReviewDraft(safe).valid,false);
 });
+
+test('shared contacts and expertise are validated once across tabs, while retaining page visibility',()=>{
+ const state=readyDraft();for(const page of ['home','projects','ai','about'])state.tabs[page]=true;
+ const contact=schema.definitions.find(d=>d.id==='home-contact'),field=contact.fields.find(f=>f.label==='合作标题');for(const def of schema.definitions.filter(d=>['home-contact','projects-contact','ai-contact','about-footer'].includes(d.id)))state.modules[def.id]=true;state.hidden[field.id]=false;state.values[field.id]='';
+ assert.equal(validateReviewDraft(state).issues.filter(i=>i.field===field.id).length,1);state.values[field.id]='只填写一次';
+ const home=schema.definitions.find(d=>d.id==='home-expertise'),about=schema.definitions.find(d=>d.id==='about-expertise');assert.deepEqual(home.collections,about.collections);assert.deepEqual(home.fields.map(f=>f.id),about.fields.map(f=>f.id));state.modules[home.id]=state.modules[about.id]=true;
+ const collection=schema.collections[home.collections[0]],entryField=collection.templates[0].fields[0];state.repeats[collection.id]=[{id:randomUUID(),variant:0,values:{[entryField.id]:''},hidden:{...state.hidden,[entryField.id]:false},colors:{}}];
+ assert.equal(validateReviewDraft(state).issues.filter(i=>i.field===entryField.id).length,1);state.repeats[collection.id][0].values[entryField.id]='同一份专业能力';assert.equal(validateReviewDraft(state).valid,true);
+ state.modules[home.id]=false;assert.equal(validateReviewDraft(state).valid,true);
+});
