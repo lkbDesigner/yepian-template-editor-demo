@@ -55,7 +55,7 @@ async function api(path,body,auth=false){
   try{await connect();response=await request();}catch{service=null;throw connectionError(path);}
  }
  const result=await response.json().catch(()=>({error:'登录或保存服务返回异常，请稍后重试'}));
- if(!response.ok){if(response.status===401)clearSession(requestToken);throw Object.assign(Error(result.error||'请求失败，请重试'),{status:response.status});}return result;
+ if(!response.ok){if(response.status===401)clearSession(requestToken);throw Object.assign(Error(result.error||'请求失败，请重试'),{status:response.status,issues:result.issues});}return result;
 }
 async function connect(){
  if(service)return;
@@ -95,7 +95,7 @@ async function beginEditing(destination,options={}){
   const nonce=crypto.randomUUID();sessionStorage.setItem('portfolio-entry:'+nonce,JSON.stringify({token,accountId,phone,expires,at:Date.now()}));
   let url=new URL(destination,location.href);
   if(options.workspace)url=new URL(role==='admin'?'../0.design 首页/admin-reviews.html':'../0.design 首页/my-templates.html',templateBase);
-  if(role==='admin'&&url.pathname.endsWith('/editor.html')&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1')url=new URL('../0.design 首页/admin-reviews.html',templateBase);
+  if(role==='admin'&&url.pathname.endsWith('/editor.html')&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1'&&!url.searchParams.has('review'))url=new URL('../0.design 首页/admin-reviews.html',templateBase);
   url.searchParams.set('entry',nonce);location.assign(url.href);
  }catch(err){if(!err.cancelled)entryError(err.message,()=>beginEditing(destination,options));}
  finally{busy=false;}
@@ -121,7 +121,7 @@ async function enterEditor(){
  try{
   url=receiveSession();if(!token)throw Error('需要登录');
   await connect();const session=await api('/api/session',{},true);storeSession(session);editorOwner=accountId;
-  if(role==='admin'&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1'){location.replace(new URL('../0.design 首页/admin-reviews.html',templateBase).href);return null;}
+  if(role==='admin'&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1'&&!url.searchParams.has('review')){location.replace(new URL('../0.design 首页/admin-reviews.html',templateBase).href);return null;}
   document.documentElement.removeAttribute('data-auth-pending');return accountId;
  }catch{
   const back=new URL('index.html',location.href);back.searchParams.set('edit','1');
@@ -162,22 +162,26 @@ async function hydrateDraft(record,cached){
  collect(cached);
  async function walk(v){
   if(!v||typeof v!=='object')return v;
-  if(v.__privateAsset===1){if(!files.has(v.proof))files.set(v.proof,(await api('/api/portfolio/file',{draftId:record.draftId,file:v},true)).file);return structuredClone(files.get(v.proof));}
+  if(v.__privateAsset===1){if(!files.has(v.proof))files.set(v.proof,(await api(record.review?'/api/admin/review/file':'/api/portfolio/file',record.review?{reviewId:record.review.reviewId,file:v}:{draftId:record.draftId,file:v},true)).file);return structuredClone(files.get(v.proof));}
   if(Array.isArray(v)){const result=[];for(const item of v)result.push(await walk(item));return result;}
-  const result={};for(const [key,child]of Object.entries(v))result[key]=await walk(child);return result;
+  const result={};for(const [key,child]of Object.entries(v)){if(record.review&&key==='files'&&Array.isArray(child))result[key]=child.map(f=>f.__privateAsset===1?{name:f.name,size:f.size,type:f.type,data:null,storage:f}:f);else result[key]=await walk(child);}return result;
  }
- const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:'editing'};return state;
+ const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:record.status||'editing',reviewId:record.reviewId||record.review?.reviewId||null,submittedAt:record.submittedAt};return state;
 }
 window.PortfolioGitHub={enterEditor,logout,accountSession,async adminSession(){await accountSession();return api('/api/admin/session',{},true);},async reviews(){await authenticate();return api('/api/admin/reviews',{},true);},open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},
+ async submit(draftId,baseRevision){await authenticate(editorOwner||accountId);return api('/api/portfolio/submit',{draftId,baseRevision},true);},
+ async withdraw(draftId,baseRevision){await authenticate(editorOwner||accountId);return api('/api/portfolio/withdraw',{draftId,baseRevision},true);},
+ async reviewFile(reviewId,file){await authenticate();return (await api('/api/admin/review/file',{reviewId,file},true)).file;},
+ async reviewRead(reviewId){await authenticate();return api('/api/admin/review/load',{reviewId},true);},
  async read(draftId){await authenticate(editorOwner||accountId);return api('/api/portfolio/load',{draftId},true);},
  hydrate:hydrateDraft,
  get accountId(){return accountId;},get phone(){return phone;},get role(){return roleVerified?role:'user';},
- async save(draft,progress=()=>{}){
+ async save(draft,progress=()=>{},options={}){
   if(busy)throw Error('正在保存，请稍候');busy=true;const owner=editorOwner||draft.owner||accountId;
   try{
    await authenticate(owner);const state=await packDraft(draft,progress);progress('正在保存模板…');
    const input={draftId:draft.id,state,baseRevision:draft.remote?.revision||null,requestId:crypto.randomUUID()};
-   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('私有保存尚未完成，请重试');showResult();return result;
+   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('私有保存尚未完成，请重试');if(!options.silent)showResult();return result;
   }catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，本机资料仍保留，请稍后再次保存');throw err;}finally{busy=false;}
  }
 };

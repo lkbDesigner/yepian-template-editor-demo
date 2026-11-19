@@ -10,7 +10,7 @@ test('admin role comes only from private account record; frontend claims do not 
   assert.equal((await call('/api/admin/session',{role:'admin',isAdmin:true},created.token)).status,403);assert.equal((await call('/api/admin/reviews',{role:'admin'},created.token)).status,403);
   const filename=directory+'/accounts.json',accounts=JSON.parse(await readFile(filename,'utf8'));accounts[phone].role='admin';await writeFile(filename,JSON.stringify(accounts),{mode:0o600});
   api=createAccountService({directory,githubFetch});const signedIn=await(await call('/api/login',{phone,password,role:'user'})).json();assert.equal(signedIn.role,'admin');assert.equal((await call('/api/session',{},signedIn.token)).status,200);assert.equal((await(await call('/api/session',{},signedIn.token)).json()).role,'admin');
-  assert.deepEqual(await(await call('/api/admin/session',{},signedIn.token)).json(),{authorized:true,role:'admin'});assert.deepEqual(await(await call('/api/admin/reviews',{},signedIn.token)).json(),{reviews:[],submissionEnabled:false});
+  assert.deepEqual(await(await call('/api/admin/session',{},signedIn.token)).json(),{authorized:true,role:'admin'});assert.deepEqual(await(await call('/api/admin/reviews',{},signedIn.token)).json(),{reviews:[],submissionEnabled:true});
   const ordinary=await(await call('/api/register',{phone:'10000000004',password,confirmPassword:password,role:'admin'})).json();assert.equal(ordinary.role,'user');assert.equal((await call('/api/admin/session',{},ordinary.token)).status,403);
   await call('/api/logout',{},signedIn.token);assert.equal((await call('/api/admin/session',{},signedIn.token)).status,401);
  }finally{await rm(directory,{recursive:true,force:true});}

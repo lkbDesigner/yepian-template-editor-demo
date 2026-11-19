@@ -1,6 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
-import {listSubmittedReviews} from './reviews.mjs';
+import {listSubmittedReviews,submitDraftReview,withdrawDraftReview,readSubmittedReview,downloadSubmittedAsset} from './reviews.mjs';
 import { REPOSITORY } from './save-worker.mjs';
 import { listPortfolios } from './portfolio-save.mjs';
 import {DATA_REPOSITORY,savePrivateDraft,loadPrivateDraft,listPrivateDrafts,uploadDraftAsset,downloadDraftAsset} from './private-drafts.mjs';
@@ -68,10 +68,16 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(path.startsWith('/api/admin/')){
         if(role!=='admin')return reply({error:'只有管理员可以访问审核管理'},403);
         if(path==='/api/admin/session')return reply({authorized:true,role:'admin'});
+        if(path==='/api/admin/review/load'||path==='/api/admin/review/file'){
+          if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
+          const input=JSON.parse(await boundedBody(request,64*1024));
+          if(path.endsWith('/file'))return reply(await downloadSubmittedAsset(input,githubFetch));
+          const record=await readSubmittedReview(input,githubFetch);delete record.assets;return reply(record);
+        }
         if(path==='/api/admin/reviews'){
           const tasks=await listSubmittedReviews(githubFetch),accounts=await readAccounts();
           const phones=new Map(Object.entries(accounts).map(([phone,data])=>[data.siteId,phone]));
-          return reply({reviews:tasks.map(task=>({...task,ownerPhone:phones.get(task.ownerId)||null})),submissionEnabled:false});
+          return reply({reviews:tasks.map(task=>({...task,ownerPhone:phones.get(task.ownerId)||null})),submissionEnabled:true});
         }
       }
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
@@ -80,6 +86,11 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
         const records=new Map(legacy.map(item=>[item.draftId,{...item,legacy:true}]));
         for(const draft of drafts){const old=records.get(draft.draftId);records.set(draft.draftId,{...draft,...(old?.url?{legacyUrl:old.url}:{})});}
         return reply({templates:[...records.values()]});
+      }
+      if(path==='/api/portfolio/submit'||path==='/api/portfolio/withdraw'){
+        if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
+        if(role==='admin')return reply({error:'管理员请从审核管理查看用户提交'},403);
+        const input=JSON.parse(await boundedBody(request,4096));return reply(await(path.endsWith('/submit')?submitDraftReview:withdrawDraftReview)(input,account,githubFetch));
       }
       if(path==='/api/portfolio/load'||path==='/api/portfolio/asset'||path==='/api/portfolio/file'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
@@ -99,6 +110,6 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
 
       }
       return reply({error:'接口不存在'},404);
-    }catch(error){return reply({error:error.status?error.message:'服务暂时不可用，请稍后重试'},error.status||502)}
+    }catch(error){return reply({error:error.status?error.message:'服务暂时不可用，请稍后重试',...(error.issues?{issues:error.issues}:{})},error.status||502)}
   };
 }

@@ -1,0 +1,6058 @@
+{
+  "version": "chinese-portfolio-20261117",
+  "pages": {
+    "home": {
+      "id": "home",
+      "title": "首页"
+    },
+    "projects": {
+      "id": "projects",
+      "title": "作品集"
+    },
+    "ai": {
+      "id": "ai",
+      "title": "AI 项目"
+    },
+    "about": {
+      "id": "about",
+      "title": "关于我"
+    },
+    "ai-1": {
+      "id": "ai-1",
+      "title": "AI 文章 1"
+    },
+    "ai-2": {
+      "id": "ai-2",
+      "title": "AI 文章 2"
+    },
+    "ai-3": {
+      "id": "ai-3",
+      "title": "AI 文章 3"
+    },
+    "case-1": {
+      "id": "case-1",
+      "title": "作品详情 1"
+    },
+    "case-2": {
+      "id": "case-2",
+      "title": "作品详情 2"
+    },
+    "case-3": {
+      "id": "case-3",
+      "title": "作品详情 3"
+    },
+    "case-4": {
+      "id": "case-4",
+      "title": "作品详情 4"
+    }
+  },
+  "definitions": [
+    {
+      "id": "global",
+      "label": "个人标识与简历",
+      "page": "global",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f0",
+          "type": "resume",
+          "label": "简历附件",
+          "initial": ""
+        },
+        {
+          "id": "f1",
+          "type": "image",
+          "label": "个人标识",
+          "initial": ""
+        },
+        {
+          "id": "f2",
+          "type": "text",
+          "label": "姓名 / 昵称",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "home-top",
+      "label": "首屏展示",
+      "page": "home",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f3",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f4",
+          "type": "text",
+          "label": "主标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f5",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "home-work",
+      "label": "精选作品",
+      "page": "home",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f32",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "精选作品"
+        }
+      ],
+      "collections": [
+        "projects"
+      ]
+    },
+    {
+      "id": "home-expertise",
+      "label": "专业能力",
+      "page": "home",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f41",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "专业能力"
+        }
+      ],
+      "collections": [
+        "home-expertise-expertise"
+      ]
+    },
+    {
+      "id": "home-contact",
+      "label": "联系与页脚 · 全站共用",
+      "page": "home",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f0",
+          "type": "resume",
+          "label": "简历附件",
+          "initial": ""
+        },
+        {
+          "id": "f43",
+          "type": "text",
+          "label": "合作标题",
+          "initial": "期待与你"
+        },
+        {
+          "id": "f44",
+          "type": "text",
+          "label": "合作标题 · 2",
+          "initial": "一起合作"
+        },
+        {
+          "id": "f45",
+          "type": "text",
+          "label": "简历按钮文字",
+          "initial": ""
+        },
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f47",
+          "type": "text",
+          "label": "返回顶部文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "projects-work",
+      "label": "精选作品",
+      "page": "projects",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f48",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "精选作品"
+        }
+      ],
+      "collections": [
+        "projects"
+      ]
+    },
+    {
+      "id": "projects-contact",
+      "label": "联系与页脚 · 全站共用",
+      "page": "projects",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f0",
+          "type": "resume",
+          "label": "简历附件",
+          "initial": ""
+        },
+        {
+          "id": "f43",
+          "type": "text",
+          "label": "合作标题",
+          "initial": "期待与你"
+        },
+        {
+          "id": "f44",
+          "type": "text",
+          "label": "合作标题 · 2",
+          "initial": "一起合作"
+        },
+        {
+          "id": "f45",
+          "type": "text",
+          "label": "简历按钮文字",
+          "initial": ""
+        },
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f47",
+          "type": "text",
+          "label": "返回顶部文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-m0",
+      "label": "AI项目名称",
+      "page": "ai",
+      "locked": false,
+      "fields": [],
+      "collections": [
+        "ai-entries"
+      ]
+    },
+    {
+      "id": "ai-contact",
+      "label": "联系与页脚 · 全站共用",
+      "page": "ai",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f0",
+          "type": "resume",
+          "label": "简历附件",
+          "initial": ""
+        },
+        {
+          "id": "f43",
+          "type": "text",
+          "label": "合作标题",
+          "initial": "期待与你"
+        },
+        {
+          "id": "f44",
+          "type": "text",
+          "label": "合作标题 · 2",
+          "initial": "一起合作"
+        },
+        {
+          "id": "f45",
+          "type": "text",
+          "label": "简历按钮文字",
+          "initial": ""
+        },
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f47",
+          "type": "text",
+          "label": "返回顶部文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "about-about",
+      "label": "个人介绍",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f70",
+          "type": "image",
+          "label": "个人照片",
+          "initial": ""
+        },
+        {
+          "id": "f71",
+          "type": "text",
+          "label": "模块标题",
+          "initial": ""
+        },
+        {
+          "id": "f72",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f73",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "about-expertise",
+      "label": "专业能力",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f82",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "专业能力"
+        }
+      ],
+      "collections": [
+        "about-expertise-expertise"
+      ]
+    },
+    {
+      "id": "about-experience",
+      "label": "工作经历",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f122",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "工作经历"
+        }
+      ],
+      "collections": [
+        "about-experience-experience",
+        "about-experience-brands"
+      ]
+    },
+    {
+      "id": "about-m3",
+      "label": "我的工作方式， 理想状态下",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f131",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f132",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        }
+      ],
+      "collections": [
+        "about-m3-process"
+      ]
+    },
+    {
+      "id": "about-m4",
+      "label": "我的工作方式， 现实工作中",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f133",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f134",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f135",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f136",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f137",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f138",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "about-m5",
+      "label": "工作之外",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f151",
+          "type": "text",
+          "label": "标题",
+          "initial": "工作之外"
+        }
+      ],
+      "collections": [
+        "about-m5-life"
+      ]
+    },
+    {
+      "id": "about-footer",
+      "label": "联系与页脚 · 全站共用",
+      "page": "about",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f0",
+          "type": "resume",
+          "label": "简历附件",
+          "initial": ""
+        },
+        {
+          "id": "f43",
+          "type": "text",
+          "label": "合作标题",
+          "initial": "期待与你"
+        },
+        {
+          "id": "f44",
+          "type": "text",
+          "label": "合作标题 · 2",
+          "initial": "一起合作"
+        },
+        {
+          "id": "f45",
+          "type": "text",
+          "label": "简历按钮文字",
+          "initial": ""
+        },
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f47",
+          "type": "text",
+          "label": "返回顶部文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-1-m0",
+      "label": "AI 项目 01",
+      "page": "ai-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f158",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f159",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f160",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-1-m1",
+      "label": "文章内容待补充",
+      "page": "ai-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f161",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f162",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "文章内容待补充"
+        },
+        {
+          "id": "f163",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f164",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-1-footer",
+      "label": "页脚版权 · 全站共用",
+      "page": "ai-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f166",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-2-m0",
+      "label": "AI 项目 02",
+      "page": "ai-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f167",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f168",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f169",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-2-m1",
+      "label": "文章内容待补充",
+      "page": "ai-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f170",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f171",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "文章内容待补充"
+        },
+        {
+          "id": "f172",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f173",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-2-footer",
+      "label": "页脚版权 · 全站共用",
+      "page": "ai-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f175",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-3-m0",
+      "label": "AI 项目 03",
+      "page": "ai-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f176",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f177",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f178",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-3-m1",
+      "label": "文章内容待补充",
+      "page": "ai-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f179",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f180",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "文章内容待补充"
+        },
+        {
+          "id": "f181",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f182",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "ai-3-footer",
+      "label": "页脚版权 · 全站共用",
+      "page": "ai-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f46",
+          "type": "textarea",
+          "label": "版权信息",
+          "initial": ""
+        },
+        {
+          "id": "f184",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-top",
+      "label": "首屏展示",
+      "page": "case-1",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f185",
+          "type": "image",
+          "label": "个人标识",
+          "initial": ""
+        },
+        {
+          "id": "f186",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f187",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f188",
+          "type": "text",
+          "label": "主标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f189",
+          "type": "text",
+          "label": "主标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f190",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f191",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f192",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f193",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f194",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f195",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f196",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f197",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f198",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f199",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f200",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f201",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-overview",
+      "label": "项目概览",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f202",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "一个关于「家」的品牌，"
+        },
+        {
+          "id": "f203",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "如何被更一致地感知？"
+        },
+        {
+          "id": "f204",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f205",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f206",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f207",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f208",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f209",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f210",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f211",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f212",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f213",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f214",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f215",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f216",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f217",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f218",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f219",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f220",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f221",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f222",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-m2",
+      "label": "让一个符号，打开一种可能",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f223",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f224",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "让一个符号，"
+        },
+        {
+          "id": "f225",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "打开一种可能。"
+        },
+        {
+          "id": "f226",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f227",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-identity",
+      "label": "保留熟悉的标志，延续品牌识别",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f228",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f229",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f230",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f231",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f232",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f233",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f234",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f235",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f236",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f237",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f238",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "保留熟悉的标志，延续品牌识别。"
+        },
+        {
+          "id": "f239",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f240",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f241",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f242",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f243",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f244",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f245",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f246",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f247",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f248",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f249",
+          "type": "textarea",
+          "label": "描述 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f250",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f251",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f252",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f253",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f254",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f255",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f256",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f257",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f258",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f259",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f260",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f261",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f262",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f263",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f264",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f265",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f266",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f267",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f268",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f269",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f270",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f271",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f272",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-m4",
+      "label": "内容模块 5",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f273",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f274",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f275",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f276",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f277",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f278",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f279",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f280",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f281",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-language",
+      "label": "清晰有序，也保留温度",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f282",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f283",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f284",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f285",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f286",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f287",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f288",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "清晰有序，也保留温度。"
+        },
+        {
+          "id": "f289",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f290",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f291",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f292",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f293",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f294",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f295",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f296",
+          "type": "text",
+          "label": "标题 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f297",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f298",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f299",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f300",
+          "type": "text",
+          "label": "标题 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f301",
+          "type": "textarea",
+          "label": "描述 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f302",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f303",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f304",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f305",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f306",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f307",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f308",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f309",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f310",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f311",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f312",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f313",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f314",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f315",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f316",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f317",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f318",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f319",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f320",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f321",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f322",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f323",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f324",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f325",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-m6",
+      "label": "让品牌，走进真实的接触点",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f326",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "让品牌，"
+        },
+        {
+          "id": "f327",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "走进真实的接触点。"
+        },
+        {
+          "id": "f328",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f329",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-applications",
+      "label": "不是更多装饰，而是更一致的体验",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f330",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f331",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f332",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f333",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f334",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f335",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f336",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f337",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f338",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f339",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f340",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f341",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f342",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f343",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "不是更多装饰，"
+        },
+        {
+          "id": "f344",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "而是更一致的体验。"
+        },
+        {
+          "id": "f345",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f346",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f347",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f348",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f349",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f350",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f351",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f352",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f353",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f354",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f355",
+          "type": "textarea",
+          "label": "描述 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f356",
+          "type": "textarea",
+          "label": "描述 · 9",
+          "initial": ""
+        },
+        {
+          "id": "f357",
+          "type": "text",
+          "label": "标题 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f358",
+          "type": "text",
+          "label": "标题 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f359",
+          "type": "text",
+          "label": "标题 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f360",
+          "type": "textarea",
+          "label": "描述 · 10",
+          "initial": ""
+        },
+        {
+          "id": "f361",
+          "type": "text",
+          "label": "标题 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f362",
+          "type": "text",
+          "label": "标题 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f363",
+          "type": "textarea",
+          "label": "描述 · 11",
+          "initial": ""
+        },
+        {
+          "id": "f364",
+          "type": "textarea",
+          "label": "描述 · 12",
+          "initial": ""
+        },
+        {
+          "id": "f365",
+          "type": "textarea",
+          "label": "描述 · 13",
+          "initial": ""
+        },
+        {
+          "id": "f366",
+          "type": "textarea",
+          "label": "描述 · 14",
+          "initial": ""
+        },
+        {
+          "id": "f367",
+          "type": "textarea",
+          "label": "描述 · 15",
+          "initial": ""
+        },
+        {
+          "id": "f368",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f369",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f370",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f371",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f372",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f373",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f374",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f375",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f376",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f377",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f378",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f379",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f380",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f381",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f382",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f383",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f384",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f385",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f386",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f387",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f388",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f389",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f390",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f391",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f392",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f393",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f394",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f395",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f396",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f397",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f398",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f399",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f400",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f401",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f402",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f403",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f404",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f405",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f406",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f407",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f408",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f409",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f410",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f411",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f412",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f413",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f414",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-closing",
+      "label": "一套视觉系统，也是一种沟通方式",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f415",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f416",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f417",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "一套视觉系统，"
+        },
+        {
+          "id": "f418",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "也是一种沟通方式。"
+        },
+        {
+          "id": "f419",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f420",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f421",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f422",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f423",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f424",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f425",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f426",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f427",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f428",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f429",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f430",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f431",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-1-m9",
+      "label": "内容模块 10",
+      "page": "case-1",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f432",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f433",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f434",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f435",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-top",
+      "label": "首屏展示",
+      "page": "case-2",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f436",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f437",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f438",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f439",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f440",
+          "type": "text",
+          "label": "主标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f441",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f442",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f443",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f444",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f445",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f446",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f447",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f448",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f449",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f450",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f451",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f452",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f453",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f454",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-overview",
+      "label": "项目概览",
+      "page": "case-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f455",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f456",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f457",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "创作的门槛，"
+        },
+        {
+          "id": "f458",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "不该挡住表达。"
+        },
+        {
+          "id": "f459",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f460",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f461",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f462",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f463",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f464",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f465",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f466",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f467",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f468",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f469",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f470",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f471",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-approach",
+      "label": "降低操作成本，保留创作的主导权",
+      "page": "case-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f472",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f473",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f474",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f475",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "降低操作成本，"
+        },
+        {
+          "id": "f476",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "保留创作的主导权。"
+        },
+        {
+          "id": "f477",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f478",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f479",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f480",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f481",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f482",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f483",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f484",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f485",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f486",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f487",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-solutions",
+      "label": "两条路径，让创作顺势发生",
+      "page": "case-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f488",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f489",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f490",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f491",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f492",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f493",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f494",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f495",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f496",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f497",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f498",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f499",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "两条路径，"
+        },
+        {
+          "id": "f500",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "让创作顺势发生。"
+        },
+        {
+          "id": "f501",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f502",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f503",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f504",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f505",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f506",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f507",
+          "type": "text",
+          "label": "标题 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f508",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f509",
+          "type": "text",
+          "label": "文字 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f510",
+          "type": "text",
+          "label": "标题 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f511",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f512",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f513",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f514",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f515",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f516",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f517",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f518",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f519",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f520",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f521",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f522",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f523",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f524",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f525",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f526",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f527",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f528",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f529",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f530",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f531",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f532",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f533",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f534",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f535",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f536",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f537",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f538",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f539",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f540",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f541",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-reflection",
+      "label": "设计思考",
+      "page": "case-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f542",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f543",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f544",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f545",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "更好的 AI，"
+        },
+        {
+          "id": "f546",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "让人更像创作者。"
+        },
+        {
+          "id": "f547",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f548",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f549",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f550",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f551",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f552",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f553",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f554",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f555",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f556",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f557",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f558",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f559",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f560",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-2-m5",
+      "label": "内容模块 6",
+      "page": "case-2",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f561",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f562",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f563",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-top",
+      "label": "首屏展示",
+      "page": "case-3",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f564",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f565",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f566",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f567",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f568",
+          "type": "text",
+          "label": "文字 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f569",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f570",
+          "type": "text",
+          "label": "主标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f571",
+          "type": "text",
+          "label": "主标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f572",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f573",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f574",
+          "type": "text",
+          "label": "文字 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f575",
+          "type": "text",
+          "label": "文字 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f576",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f577",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f578",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f579",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f580",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f581",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-overview",
+      "label": "项目概览",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f582",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "海外购物的犹豫，"
+        },
+        {
+          "id": "f583",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "往往来自不确定。"
+        },
+        {
+          "id": "f584",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f585",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f586",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f587",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f588",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f589",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f590",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f591",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f592",
+          "type": "text",
+          "label": "标题 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f593",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f594",
+          "type": "text",
+          "label": "标题 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f595",
+          "type": "text",
+          "label": "标题 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f596",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f597",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f598",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f599",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f600",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f601",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-product",
+      "label": "先看懂服务，再放心挑选",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f602",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f603",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f604",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f605",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f606",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "先看懂服务，"
+        },
+        {
+          "id": "f607",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "再放心挑选。"
+        },
+        {
+          "id": "f608",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f609",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f610",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f611",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f612",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f613",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f614",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f615",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f616",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f617",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f618",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f619",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f620",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f621",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-checkout",
+      "label": "总价清楚，决定才能更从容",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f622",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f623",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f624",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f625",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f626",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "总价清楚，"
+        },
+        {
+          "id": "f627",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "决定才能更从容。"
+        },
+        {
+          "id": "f628",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f629",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f630",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f631",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f632",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f633",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f634",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f635",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f636",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f637",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f638",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f639",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f640",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f641",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-orders",
+      "label": "下单完成，安心也应该继续",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f642",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f643",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f644",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f645",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "下单完成，"
+        },
+        {
+          "id": "f646",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "安心也应该继续。"
+        },
+        {
+          "id": "f647",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f648",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f649",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f650",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f651",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f652",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f653",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f654",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f655",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f656",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f657",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f658",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f659",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f660",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f661",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f662",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f663",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f664",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-reflection",
+      "label": "设计思考",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f665",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f666",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "让信息清晰，"
+        },
+        {
+          "id": "f667",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "也是在建立信任。"
+        },
+        {
+          "id": "f668",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f669",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f670",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f671",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f672",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f673",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f674",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "多一点清晰。"
+        },
+        {
+          "id": "f675",
+          "type": "text",
+          "label": "模块标题 · 4",
+          "initial": "多一份把握。"
+        },
+        {
+          "id": "f676",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f677",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f678",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f679",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f680",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f681",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-3-m6",
+      "label": "内容模块 7",
+      "page": "case-3",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f682",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f683",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f684",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-top",
+      "label": "首屏展示",
+      "page": "case-4",
+      "locked": true,
+      "fields": [
+        {
+          "id": "f685",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f686",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f687",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f688",
+          "type": "text",
+          "label": "文字",
+          "initial": ""
+        },
+        {
+          "id": "f689",
+          "type": "text",
+          "label": "文字 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f690",
+          "type": "text",
+          "label": "主标题",
+          "initial": ""
+        },
+        {
+          "id": "f691",
+          "type": "text",
+          "label": "主标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f692",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f693",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f694",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f695",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f696",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f697",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f698",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f699",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f700",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f701",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f702",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f703",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f704",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f705",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-overview",
+      "label": "项目概览",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f706",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f707",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "东西很多，"
+        },
+        {
+          "id": "f708",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "合适的却"
+        },
+        {
+          "id": "f709",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "不好找。"
+        },
+        {
+          "id": "f710",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f711",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f712",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f713",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f714",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f715",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f716",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f717",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f718",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f719",
+          "type": "text",
+          "label": "标题 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f720",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f721",
+          "type": "textarea",
+          "label": "描述 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f722",
+          "type": "text",
+          "label": "标题 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f723",
+          "type": "textarea",
+          "label": "描述 · 9",
+          "initial": ""
+        },
+        {
+          "id": "f724",
+          "type": "text",
+          "label": "标题 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f725",
+          "type": "textarea",
+          "label": "描述 · 10",
+          "initial": ""
+        },
+        {
+          "id": "f726",
+          "type": "text",
+          "label": "标题 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f727",
+          "type": "textarea",
+          "label": "描述 · 11",
+          "initial": ""
+        },
+        {
+          "id": "f728",
+          "type": "text",
+          "label": "标题 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f729",
+          "type": "textarea",
+          "label": "描述 · 12",
+          "initial": ""
+        },
+        {
+          "id": "f730",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f731",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f732",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f733",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f734",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f735",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f736",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f737",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f738",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f739",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f740",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f741",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f742",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f743",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f744",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f745",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f746",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f747",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f748",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f749",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f750",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f751",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f752",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f753",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f754",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f755",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-foundation",
+      "label": "把用户的条件，放回筛选的第一位",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f756",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f757",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "把用户的条件，"
+        },
+        {
+          "id": "f758",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "放回筛选的"
+        },
+        {
+          "id": "f759",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "第一位。"
+        },
+        {
+          "id": "f760",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f761",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f762",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f763",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f764",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f765",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f766",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f767",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f768",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f769",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f770",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f771",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f772",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f773",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f774",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f775",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f776",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f777",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-intent",
+      "label": "用户还没说，行为已经给了线索",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f778",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f779",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f780",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f781",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "用户还没说，"
+        },
+        {
+          "id": "f782",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "行为已经"
+        },
+        {
+          "id": "f783",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "给了线索。"
+        },
+        {
+          "id": "f784",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f785",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f786",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f787",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f788",
+          "type": "textarea",
+          "label": "描述 · 5",
+          "initial": ""
+        },
+        {
+          "id": "f789",
+          "type": "textarea",
+          "label": "描述 · 6",
+          "initial": ""
+        },
+        {
+          "id": "f790",
+          "type": "textarea",
+          "label": "描述 · 7",
+          "initial": ""
+        },
+        {
+          "id": "f791",
+          "type": "textarea",
+          "label": "描述 · 8",
+          "initial": ""
+        },
+        {
+          "id": "f792",
+          "type": "textarea",
+          "label": "描述 · 9",
+          "initial": ""
+        },
+        {
+          "id": "f793",
+          "type": "textarea",
+          "label": "描述 · 10",
+          "initial": ""
+        },
+        {
+          "id": "f794",
+          "type": "textarea",
+          "label": "描述 · 11",
+          "initial": ""
+        },
+        {
+          "id": "f795",
+          "type": "textarea",
+          "label": "描述 · 12",
+          "initial": ""
+        },
+        {
+          "id": "f796",
+          "type": "textarea",
+          "label": "描述 · 13",
+          "initial": ""
+        },
+        {
+          "id": "f797",
+          "type": "textarea",
+          "label": "描述 · 14",
+          "initial": ""
+        },
+        {
+          "id": "f798",
+          "type": "textarea",
+          "label": "描述 · 15",
+          "initial": ""
+        },
+        {
+          "id": "f799",
+          "type": "textarea",
+          "label": "描述 · 16",
+          "initial": ""
+        },
+        {
+          "id": "f800",
+          "type": "textarea",
+          "label": "描述 · 17",
+          "initial": ""
+        },
+        {
+          "id": "f801",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f802",
+          "type": "textarea",
+          "label": "描述 · 18",
+          "initial": ""
+        },
+        {
+          "id": "f803",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f804",
+          "type": "textarea",
+          "label": "描述 · 19",
+          "initial": ""
+        },
+        {
+          "id": "f805",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f806",
+          "type": "textarea",
+          "label": "描述 · 20",
+          "initial": ""
+        },
+        {
+          "id": "f807",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f808",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f809",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f810",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f811",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f812",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f813",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f814",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f815",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f816",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f817",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f818",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f819",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f820",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f821",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f822",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f823",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f824",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f825",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f826",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f827",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f828",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-information",
+      "label": "不只告诉用户“能买”，更要说明“为什么选它”",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f829",
+          "type": "image",
+          "label": "图片",
+          "initial": ""
+        },
+        {
+          "id": "f830",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "不只告诉用户“能买”，"
+        },
+        {
+          "id": "f831",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "更要说明"
+        },
+        {
+          "id": "f832",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "“为什么选它”。"
+        },
+        {
+          "id": "f833",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f834",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f835",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f836",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f837",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f838",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f839",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f840",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f841",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f842",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f843",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f844",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f845",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f846",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f847",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f848",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f849",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f850",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f851",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f852",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f853",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f854",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-reflection",
+      "label": "设计思考",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f855",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f856",
+          "type": "text",
+          "label": "模块标题",
+          "initial": "把“找得到”，"
+        },
+        {
+          "id": "f857",
+          "type": "text",
+          "label": "模块标题 · 2",
+          "initial": "变成"
+        },
+        {
+          "id": "f858",
+          "type": "text",
+          "label": "模块标题 · 3",
+          "initial": "“选得对”。"
+        },
+        {
+          "id": "f859",
+          "type": "text",
+          "label": "标题",
+          "initial": ""
+        },
+        {
+          "id": "f860",
+          "type": "textarea",
+          "label": "描述",
+          "initial": ""
+        },
+        {
+          "id": "f861",
+          "type": "text",
+          "label": "标题 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f862",
+          "type": "textarea",
+          "label": "描述 · 2",
+          "initial": ""
+        },
+        {
+          "id": "f863",
+          "type": "text",
+          "label": "标题 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f864",
+          "type": "textarea",
+          "label": "描述 · 3",
+          "initial": ""
+        },
+        {
+          "id": "f865",
+          "type": "textarea",
+          "label": "描述 · 4",
+          "initial": ""
+        },
+        {
+          "id": "f866",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f867",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f868",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f869",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    },
+    {
+      "id": "case-4-m6",
+      "label": "内容模块 7",
+      "page": "case-4",
+      "locked": false,
+      "fields": [
+        {
+          "id": "f870",
+          "type": "url",
+          "label": "链接地址",
+          "initial": ""
+        },
+        {
+          "id": "f871",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        },
+        {
+          "id": "f872",
+          "type": "text",
+          "label": "说明文字",
+          "initial": ""
+        }
+      ],
+      "collections": []
+    }
+  ],
+  "collections": {
+    "projects": {
+      "id": "projects",
+      "label": "作品",
+      "project": true,
+      "templates": [
+        {
+          "target": "case-4",
+          "fields": [
+            {
+              "id": "f15",
+              "type": "image",
+              "label": "整张作品封面",
+              "initial": ""
+            },
+            {
+              "id": "f6",
+              "type": "text",
+              "label": "项目 / 品牌",
+              "initial": ""
+            },
+            {
+              "id": "f7",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f8",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            },
+            {
+              "id": "f9",
+              "type": "text",
+              "label": "成果数值",
+              "initial": ""
+            },
+            {
+              "id": "f10",
+              "type": "text",
+              "label": "文字",
+              "initial": ""
+            },
+            {
+              "id": "f11",
+              "type": "text",
+              "label": "成果数值 · 2",
+              "initial": ""
+            },
+            {
+              "id": "f12",
+              "type": "text",
+              "label": "文字 · 2",
+              "initial": ""
+            },
+            {
+              "id": "f13",
+              "type": "text",
+              "label": "成果数值 · 3",
+              "initial": ""
+            },
+            {
+              "id": "f14",
+              "type": "text",
+              "label": "文字 · 3",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": "case-2",
+          "fields": [
+            {
+              "id": "f19",
+              "type": "image",
+              "label": "整张作品封面",
+              "initial": ""
+            },
+            {
+              "id": "f16",
+              "type": "text",
+              "label": "项目 / 品牌",
+              "initial": ""
+            },
+            {
+              "id": "f17",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f18",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": "case-3",
+          "fields": [
+            {
+              "id": "f23",
+              "type": "image",
+              "label": "整张作品封面",
+              "initial": ""
+            },
+            {
+              "id": "f20",
+              "type": "text",
+              "label": "项目 / 品牌",
+              "initial": ""
+            },
+            {
+              "id": "f21",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f22",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": "case-1",
+          "fields": [
+            {
+              "id": "f31",
+              "type": "image",
+              "label": "整张作品封面",
+              "initial": ""
+            },
+            {
+              "id": "f24",
+              "type": "text",
+              "label": "项目 / 品牌",
+              "initial": ""
+            },
+            {
+              "id": "f25",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f26",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            },
+            {
+              "id": "f27",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            },
+            {
+              "id": "f28",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            },
+            {
+              "id": "f29",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            },
+            {
+              "id": "f30",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "home-expertise-expertise": {
+      "id": "home-expertise-expertise",
+      "label": "专长",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f33",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f34",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f35",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f36",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f37",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f38",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f39",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f40",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "ai-entries": {
+      "id": "ai-entries",
+      "label": "AI 项目",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f55",
+              "type": "text",
+              "label": "模块标题",
+              "initial": "AI项目名称"
+            },
+            {
+              "id": "f56",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            },
+            {
+              "id": "f57",
+              "type": "textarea",
+              "label": "描述 · 2",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f58",
+              "type": "text",
+              "label": "模块标题",
+              "initial": "AI项目名称"
+            },
+            {
+              "id": "f59",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            },
+            {
+              "id": "f60",
+              "type": "textarea",
+              "label": "描述 · 2",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f61",
+              "type": "text",
+              "label": "模块标题",
+              "initial": "AI项目名称"
+            },
+            {
+              "id": "f62",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            },
+            {
+              "id": "f63",
+              "type": "textarea",
+              "label": "描述 · 2",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "about-expertise-expertise": {
+      "id": "about-expertise-expertise",
+      "label": "专长",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f74",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f75",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f76",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f77",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f78",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f79",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f80",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f81",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "about-experience-experience": {
+      "id": "about-experience-experience",
+      "label": "经历",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f83",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f84",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f85",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f86",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f87",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f88",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f89",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f90",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f91",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f92",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f93",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f94",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f95",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f96",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f97",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f98",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f99",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f100",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f101",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f102",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f103",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f104",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f105",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f106",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f107",
+              "type": "text",
+              "label": "时间",
+              "initial": ""
+            },
+            {
+              "id": "f108",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f109",
+              "type": "textarea",
+              "label": "职位",
+              "initial": ""
+            },
+            {
+              "id": "f110",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "about-experience-brands": {
+      "id": "about-experience-brands",
+      "label": "品牌",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f111",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f112",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f113",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f114",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            },
+            {
+              "id": "f115",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f116",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f117",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f118",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f119",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f120",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f121",
+              "type": "text",
+              "label": "说明文字",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "about-m3-process": {
+      "id": "about-m3-process",
+      "label": "步骤",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f123",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f124",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f125",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f126",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f127",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f128",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f129",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f130",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    },
+    "about-m5-life": {
+      "id": "about-m5-life",
+      "label": "生活记录",
+      "project": false,
+      "templates": [
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f139",
+              "type": "image",
+              "label": "图片",
+              "initial": ""
+            },
+            {
+              "id": "f140",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f141",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f142",
+              "type": "image",
+              "label": "图片",
+              "initial": ""
+            },
+            {
+              "id": "f143",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f144",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f145",
+              "type": "image",
+              "label": "图片",
+              "initial": ""
+            },
+            {
+              "id": "f146",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f147",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        },
+        {
+          "target": null,
+          "fields": [
+            {
+              "id": "f148",
+              "type": "image",
+              "label": "图片",
+              "initial": ""
+            },
+            {
+              "id": "f149",
+              "type": "text",
+              "label": "标题",
+              "initial": ""
+            },
+            {
+              "id": "f150",
+              "type": "textarea",
+              "label": "描述",
+              "initial": ""
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
