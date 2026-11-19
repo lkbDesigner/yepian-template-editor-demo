@@ -10,11 +10,13 @@ function render(items){
   const card=document.createElement('article');card.className='my-template';
   const image=document.createElement('img');image.src='assets/chinese-portfolio-template.png';image.alt='中文作品集模板';image.loading='lazy';card.append(image);
   const body=document.createElement('div');body.className='card-body';card.append(body);
-  const tag=document.createElement('span');tag.className='tag published';tag.textContent=['submitted','reviewing'].includes(item.status)?'审核中':'编辑中';body.append(tag);
+  const tag=document.createElement('span');tag.className='tag published';tag.textContent=({submitted:'审核中',reviewing:'审核中',approved:'审核通过 · 可发布',published:'已发布'})[item.status]||'编辑中';body.append(tag);
   const title=document.createElement('h2');title.textContent=item.title||'中文作品集模板';body.append(title);
   const stamp=document.createElement('time');stamp.textContent='最近保存 · '+date(item.updatedAt||item.savedAt);body.append(stamp);
   const actions=document.createElement('div');actions.className='card-actions';body.append(actions);
   {const edit=action(['submitted','reviewing'].includes(item.status)?'查看提交内容':'继续编辑',()=>openDraft('editor.html',item));edit.classList.add('primary');actions.append(edit);actions.append(action('预览当前模板',()=>openDraft('template-preview.html',item)));}
+  if(item.status==='approved'){const publish=action('发布',async()=>{if(!confirm('发布后网站内容将公开，确认发布？'))return;publish.disabled=true;publish.textContent='正在发布…';try{await PortfolioGitHub.publish(item.draftId,item.revision);await load();}catch(error){$('#error').hidden=false;$('#error').textContent=error.message;publish.disabled=false;publish.textContent='发布';}});publish.classList.add('primary');actions.append(publish);}else if(!['published'].includes(item.status)){const publish=action('发布',()=>{});publish.disabled=true;publish.title='审核通过后才可以发布';actions.append(publish);}
+  if(item.publication?.url){const link=document.createElement('a');link.className='button';link.textContent='查看已发布网站 ↗';link.href=item.publication.url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}
   $('#templates').append(card);
  }
 }

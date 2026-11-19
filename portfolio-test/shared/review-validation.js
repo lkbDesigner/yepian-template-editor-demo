@@ -1,7 +1,7 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.PortfolioReviewValidation=factory();})(globalThis,function(){
 'use strict';
-function validate(state,schema){
- const issues=[],seen=new Set(),sources=new Set();const trim=v=>typeof v==='string'?v.trim():'';
+function validate(state,schema,options={}){
+ const issues=[],seen=new Set(),sources=new Set();const detailPages=new Set((state.repeats?.projects||[]).filter(i=>!i.deleted).map(i=>schema.collections.projects.templates[i.variant%schema.collections.projects.templates.length]?.target));const trim=v=>typeof v==='string'?v.trim():'';
  const url=v=>{try{return ['http:','https:','mailto:'].includes(new URL(v).protocol);}catch{return false;}};
  const file=v=>!!v&&v.size>0&&(v.__privateAsset===1||typeof v.data==='string'&&v.data.startsWith('data:'));
  function add(issue){issues.push(issue);}
@@ -20,6 +20,7 @@ function validate(state,schema){
    if(!item||typeof item!=='object'||!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(item.id||'')||itemIds.has(item.id)||!Number.isSafeInteger(item.variant)||item.variant<0){add({page:'projects',module:null,label:c.label,message:'条目编号异常，请重新添加该条目'});continue;}
    itemIds.add(item.id);
    for(const key of ['values','hidden','colors'])if(!item[key]||typeof item[key]!=='object'||Array.isArray(item[key]))add({page:'projects',module:null,label:c.label,message:'条目数据不完整'});
+   if(c.project&&item.detail&&(typeof item.detail!=='object'||Array.isArray(item.detail)||['values','hidden','colors','modules'].some(k=>!item.detail[k]||typeof item.detail[k]!=='object'||Array.isArray(item.detail[k]))))add({page:'projects',module:null,label:'作品详情',message:'作品详情结构异常'});
    if(c.project&&(!Array.isArray(item.files)||['links','notes','style'].some(k=>typeof item[k]!=='string')))add({page:'projects',module:null,label:'作品资料',message:'作品资料结构不完整'});
   }
  }
@@ -47,6 +48,12 @@ function validate(state,schema){
    }
   }
  }
+ if(options.includeProjectDetails)for(const item of (state.repeats?.projects||[]).filter(i=>!i.deleted)){
+  const target=schema.collections.projects.templates[item.variant%schema.collections.projects.templates.length].target,page='work-'+item.id,data=item.detail||{values:state.values,hidden:state.hidden,colors:state.colors,modules:state.modules,visible:state.tabs?.[target]!==false},defs=schema.definitions.filter(d=>d.page===target&&(d.locked||data.modules?.[d.id]!==false));
+  for(const def of defs)for(const f of def.fields)check(f,data,{...def,page},item);
+  const content=defs.flatMap(d=>d.fields).some(f=>!data.hidden?.[f.id]&&(f.type==='image'?file(data.values?.[f.id]):!f.initial&&!!trim(data.values?.[f.id])));if(data.visible===false||!content)add({page,module:defs[0]?.id||null,label:'作品详情',message:'请完成并显示该作品的详情内容后再审核通过'});
+ }
+
  if(!validProject)add({page:'projects',module:projectDefs[0]?.id||null,cid:'projects',label:'作品集',message:'作品集不能为空，至少需要一个已填写名称的作品'});
  return {valid:issues.length===0,issues,count:issues.length};
 }

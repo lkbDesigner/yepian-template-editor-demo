@@ -1,12 +1,14 @@
+import {publishApprovedDraft} from './publish-approved.mjs';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
-import {listSubmittedReviews,submitDraftReview,withdrawDraftReview,readSubmittedReview,downloadSubmittedAsset} from './reviews.mjs';
+import {listSubmittedReviews,submitDraftReview,withdrawDraftReview,readSubmittedReview,downloadSubmittedAsset,saveReviewDraft,approveDraftReview} from './reviews.mjs';
 import { REPOSITORY } from './save-worker.mjs';
 import {DATA_REPOSITORY,savePrivateDraft,loadPrivateDraft,listPrivateDrafts,uploadDraftAsset,downloadDraftAsset} from './private-drafts.mjs';
 const origin = 'https://lkbdesigner.github.io';
 const hex = n => randomBytes(n).toString('hex');
 export function createAccountService({directory, githubFetch, allowedOrigins=[origin]}) {
-  const sessions = new Map(), attempts = new Map();
+  const sessions = new Map(), attempts = new Map(),draftLocks=new Map();
+  const locked=async(key,work)=>{const job=(draftLocks.get(key)||Promise.resolve()).catch(()=>{}).then(work);draftLocks.set(key,job);try{return await job;}finally{if(draftLocks.get(key)===job)draftLocks.delete(key);}};
   let queue = Promise.resolve();
   const headers = {'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'GET, POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Content-Type':'application/json','Vary':'Origin'};
   const reply = (data,status=200) => Response.json(data,{status,headers});
@@ -67,6 +69,15 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(path.startsWith('/api/admin/')){
         if(role!=='admin')return reply({error:'只有管理员可以访问审核管理'},403);
         if(path==='/api/admin/session')return reply({authorized:true,role:'admin'});
+        if(['/api/admin/review/save','/api/admin/review/approve','/api/admin/review/asset'].includes(path)){
+          if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
+          const input=JSON.parse(await boundedBody(request,path.endsWith('/asset')?72*1024*1024:path.endsWith('/save')?6*1024*1024:4096)),record=await readSubmittedReview(input,githubFetch),owner=Object.values(await readAccounts()).find(a=>a.siteId===record.review.ownerId);
+          if(!owner)return reply({error:'提交用户账号不可用'},409);
+          return reply(await locked(owner.siteId+'/'+record.draftId,async()=>{
+            if(path.endsWith('/asset')){const fresh=await readSubmittedReview(input,githubFetch);if(!['submitted','reviewing'].includes(fresh.status))throw Object.assign(Error('审核已完成，不能再上传附件'),{status:409});return {file:await uploadDraftAsset({draftId:record.draftId,file:input.file},owner,githubFetch)};}
+            return path.endsWith('/approve')?approveDraftReview(input,owner,account,githubFetch):saveReviewDraft(input,owner,account,githubFetch);
+          }));
+        }
         if(path==='/api/admin/review/load'||path==='/api/admin/review/file'){
           if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
           const input=JSON.parse(await boundedBody(request,64*1024));
@@ -81,10 +92,10 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       }
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/portfolios')return reply({templates:await listPrivateDrafts(account,githubFetch)});
-      if(path==='/api/portfolio/submit'||path==='/api/portfolio/withdraw'){
+      if(path==='/api/portfolio/submit'||path==='/api/portfolio/withdraw'||path==='/api/portfolio/publish'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         if(role==='admin')return reply({error:'管理员请从审核管理查看用户提交'},403);
-        const input=JSON.parse(await boundedBody(request,4096));return reply(await(path.endsWith('/submit')?submitDraftReview:withdrawDraftReview)(input,account,githubFetch));
+        const input=JSON.parse(await boundedBody(request,4096));return reply(await locked(account.siteId+'/'+input.draftId,()=> (path.endsWith('/submit')?submitDraftReview:path.endsWith('/publish')?publishApprovedDraft:withdrawDraftReview)(input,account,githubFetch)));
       }
       if(path==='/api/portfolio/load'||path==='/api/portfolio/asset'||path==='/api/portfolio/file'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
@@ -96,7 +107,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
       if(path==='/api/portfolio'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         const body=JSON.parse(await boundedBody(request,6*1024*1024));
-        return reply(await savePrivateDraft(body,account,githubFetch));
+        return reply(await locked(account.siteId+'/'+body.draftId,()=>savePrivateDraft(body,account,githubFetch)));
       }
       if(path==='/api/save'){
         const body=JSON.parse(await boundedBody(request,12*1024*1024));if(body.siteId!==account.siteId)return reply({error:'不能修改其他用户的页面'},403);

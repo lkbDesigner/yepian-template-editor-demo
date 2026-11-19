@@ -44,7 +44,7 @@ function connectionError(path){return Error(path.startsWith('/api/portfolio')?'�
 async function api(path,body,auth=false){
  await connect();
  const requestToken=token;
- const request=()=>fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+requestToken}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(path==='/api/portfolio/asset'||path==='/api/portfolio/file'?300000:path==='/api/portfolio'?180000:20000)});
+ const request=()=>fetch(service+path,{method:'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:'Bearer '+requestToken}:{})},body:JSON.stringify(body),signal:AbortSignal.timeout(path.endsWith('/asset')||path.endsWith('/file')||path.endsWith('/publish')?300000:path==='/api/portfolio'||path.endsWith('/save')?180000:path.endsWith('/approve')?60000:20000)});
  let response;
  try{response=await request();}
  catch{
@@ -150,17 +150,18 @@ async function loginOnHome(){
  if(busy)return;busy=true;dialog.dataset.intent='home';dialog.querySelector('h2').textContent='登录账号';
  try{await authenticate();if(role==='admin')location.assign(new URL('../0.design 首页/admin-reviews.html',templateBase).href);}catch(err){if(!err.cancelled)entryError(err.message,loginOnHome);}finally{busy=false;}
 }
-async function packDraft(draft,progress){
+async function packDraft(draft,progress,reviewId=null){
  let count=0,done=0;
  function countFiles(value){if(!value||typeof value!=='object')return;if(typeof value.data==='string'&&value.data.startsWith('data:')&&typeof value.name==='string'){count++;return;}for(const child of Object.values(value))countFiles(child);}
  countFiles(draft);
  async function walk(value){
   if(!value||typeof value!=='object')return value;
+  if(value.storage?.__privateAsset===1&&value.data===null)return value.storage;
   if(typeof value.data==='string'&&value.data.startsWith('data:')&&typeof value.name==='string'){
    progress('正在保存附件 '+(++done)+' / '+count);
    let ref=value.storage;
    if(!ref||ref.name!==value.name||ref.size!==value.size||ref.type!==(value.type||'application/octet-stream')){
-    ref=(await api('/api/portfolio/asset',{draftId:draft.id,file:{name:value.name,size:value.size,type:value.type||'',data:value.data}},true)).file;value.storage=ref;
+    ref=(await api(reviewId?'/api/admin/review/asset':'/api/portfolio/asset',{...(reviewId?{reviewId}:{draftId:draft.id}),file:{name:value.name,size:value.size,type:value.type||'',data:value.data}},true)).file;value.storage=ref;
    }
    return ref;
   }
@@ -179,9 +180,12 @@ async function hydrateDraft(record,cached){
   if(Array.isArray(v)){const result=[];for(const item of v)result.push(await walk(item));return result;}
   const result={};for(const [key,child]of Object.entries(v)){if(record.review&&key==='files'&&Array.isArray(child))result[key]=child.map(f=>f.__privateAsset===1?{name:f.name,size:f.size,type:f.type,data:null,storage:f}:f);else result[key]=await walk(child);}return result;
  }
- const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:record.status||'editing',reviewId:record.reviewId||record.review?.reviewId||null,submittedAt:record.submittedAt};return state;
+ const state=await walk(record.state);state.remote={revision:record.revision,savedAt:record.updatedAt,savedUpdated:state.updated,status:record.status||'editing',reviewId:record.reviewId||record.review?.reviewId||null,submittedAt:record.submittedAt,approvedAt:record.approvedAt,publication:record.publication||null};return state;
 }
 window.PortfolioGitHub={enterEditor,logout,accountSession,async adminSession(){await accountSession();return api('/api/admin/session',{},true);},async reviews(){await authenticate();return api('/api/admin/reviews',{},true);},open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},
+ async approve(reviewId,baseRevision){await authenticate();return api('/api/admin/review/approve',{reviewId,baseRevision},true);},
+ async publish(draftId,baseRevision){await authenticate(editorOwner||accountId);return api('/api/portfolio/publish',{draftId,baseRevision},true);},
+ async saveReview(reviewId,draft,progress=()=>{}){if(busy)throw Error('正在保存，请稍候');busy=true;try{await authenticate();const state=await packDraft(draft,progress,reviewId);return await api('/api/admin/review/save',{reviewId,state,baseRevision:draft.remote.revision},true);}finally{busy=false;}},
  async submit(draftId,baseRevision){await authenticate(editorOwner||accountId);return api('/api/portfolio/submit',{draftId,baseRevision},true);},
  async withdraw(draftId,baseRevision){await authenticate(editorOwner||accountId);return api('/api/portfolio/withdraw',{draftId,baseRevision},true);},
  async reviewFile(reviewId,file){await authenticate();return (await api('/api/admin/review/file',{reviewId,file},true)).file;},
@@ -194,7 +198,7 @@ window.PortfolioGitHub={enterEditor,logout,accountSession,async adminSession(){a
   try{
    await authenticate(owner);const state=await packDraft(draft,progress);progress('正在保存模板…');
    const input={draftId:draft.id,state,baseRevision:draft.remote?.revision||null,requestId:crypto.randomUUID()};
-   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('保存尚未完成，请重试');if(!options.silent)showResult();return result;
+   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||!['editing','approved','published'].includes(result.status))throw Error('保存尚未完成，请重试');if(!options.silent)showResult();return result;
   }catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，本机资料仍保留，请稍后再次保存');throw err;}finally{busy=false;}
  }
 };

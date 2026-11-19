@@ -33,7 +33,7 @@ export async function uploadDraftAsset(input,account,githubFetch){
  const api=await privateAPI(githubFetch);const blob=await api('/git/blobs','POST',{encoding:'base64',content:match[2]});
  const ref={__privateAsset:1,sha:blob.sha,name:file.name,type:file.type||'application/octet-stream',size:bytes.length};ref.proof=proof(account,input.draftId,ref);return ref;
 }
-function normalizeState(input,account,id){
+export function normalizeState(input,account,id){
  if(!input||input.id!==id||typeof input.title!=='string'||input.title.length>100)fail(400,'草稿内容不正确');
  for(const key of ['values','hidden','colors','modules','tabs','repeats'])if(!input[key]||typeof input[key]!=='object'||Array.isArray(input[key]))fail(400,'缺少模板编辑数据');
  let nodes=0,total=0;const assets=new Map();
@@ -50,7 +50,7 @@ function normalizeState(input,account,id){
  if(!Number.isSafeInteger(state.updated)||state.updated<0)fail(400,'编辑时间不正确');
  state.owner=account.siteId;if(Buffer.byteLength(JSON.stringify(state))>4*1024*1024)fail(413,'文字及编辑数据合计最多 4 MB');return {state,assets:[...assets.values()]};
 }
-export function summary(doc,revision){return {draftId:doc.state.id,title:doc.state.title||'中文作品集模板',updatedAt:doc.savedAt,editedAt:doc.state.updated,status:doc.status||'editing',reviewId:doc.workflow?.reviewId||null,submittedAt:doc.workflow?.submittedAt||null,private:true,revision};}
+export function summary(doc,revision){return {draftId:doc.state.id,title:doc.state.title||'中文作品集模板',updatedAt:doc.savedAt,editedAt:doc.state.updated,status:doc.status||'editing',reviewId:doc.workflow?.reviewId||null,submittedAt:doc.workflow?.submittedAt||null,approvedAt:doc.workflow?.approvedAt||null,publication:doc.publication||null,private:true,revision};}
 export async function savePrivateDraft(input,account,githubFetch){
  const root=scope(account,input.draftId);if(input.html!==undefined)fail(426,'保存方式已更新，请刷新页面；保存仅存私有草稿，不再生成公开网页');
  if(input.baseRevision!==null&&!SHA.test(input.baseRevision||''))fail(400,'缺少草稿版本，请重新打开模板');
@@ -58,13 +58,17 @@ export async function savePrivateDraft(input,account,githubFetch){
  const requestId=typeof input.requestId==='string'&&UUID.test(input.requestId)?input.requestId:null;
  for(let attempt=0;attempt<4;attempt++){
   const head=await api('/git/ref/heads/main'),parent=await api('/git/commits/'+head.object.sha),previous=await documentAt(api,root,head.object.sha);
-  if(previous&&previous.document.status!=='editing')fail(409,'模板已上传审核，撤回审核后才可以继续编辑');
+  if(previous?.document.publicationPending)fail(409,'正在发布，请稍后再保存');
+  if(previous&&!['editing','approved','published'].includes(previous.document.status))fail(409,'模板已上传审核，撤回审核后才可以继续编辑');
   if(previous?.document.contentHash===contentHash)return {saved:true,...summary(previous.document,previous.revision),requestId};
   if((previous?.revision??null)!==input.baseRevision)fail(409,'草稿已在其他页面更新，本机修改已保留。请重新打开模板后再保存');
-  const savedAt=new Date().toISOString(),doc={schemaVersion:1,template:'chinese-portfolio',status:'editing',ownerId:account.siteId,savedAt,contentHash,state,assets};
+  const savedAt=new Date().toISOString(),doc={schemaVersion:1,template:'chinese-portfolio',status:'editing',ownerId:account.siteId,savedAt,contentHash,state,assets,...(previous?.document.publication?{publication:previous.document.publication}:{})};
   const draftBlob=await api('/git/blobs','POST',{encoding:'utf-8',content:JSON.stringify(doc)});
   const meta=summary(doc,draftBlob.sha);
   const tree=[{path:root+'/draft.json',mode:'100644',type:'blob',sha:draftBlob.sha},{path:root+'/metadata.json',mode:'100644',type:'blob',content:JSON.stringify(meta)},...assets.map(f=>({path:root+'/attachments/'+f.sha,mode:'100644',type:'blob',sha:f.sha}))];
+  if(previous?.document.workflow?.reviewId&&['approved','published'].includes(previous.document.status)){
+   const path='reviews/'+previous.document.workflow.reviewId+'.json',file=await api('/contents/'+path+'?ref='+head.object.sha,'GET',undefined,true);if(file){const oldReview=blobJSON(file);tree.push({path,mode:'100644',type:'blob',content:JSON.stringify({...oldReview,status:'superseded',supersededAt:savedAt})});}
+  }
   const active=new Set(assets.map(f=>f.sha));for(const old of previous?.document.assets||[])if(SHA.test(old.sha)&&!active.has(old.sha))tree.push({path:root+'/attachments/'+old.sha,mode:'100644',type:'blob',sha:null});
   const created=await api('/git/trees','POST',{base_tree:parent.tree.sha,tree});
   const commit=await api('/git/commits','POST',{message:'Save private portfolio draft '+input.draftId,tree:created.sha,parents:[head.object.sha]});
@@ -83,6 +87,6 @@ export async function downloadDraftAsset(input,account,githubFetch){
 export async function listPrivateDrafts(account,githubFetch){
  const owner=account.siteId;if(!/^[a-f0-9]{24}$/.test(owner))fail(403,'账号不正确');const api=await privateAPI(githubFetch),root='templates/'+owner;
  const dirs=await api('/contents/'+root+'?ref=main','GET',undefined,true);if(!dirs)return [];if(!Array.isArray(dirs))throw Error('草稿列表异常');
- const results=[];for(const dir of dirs){if(dir.type!=='dir'||!UUID.test(dir.name))continue;const file=await api(`/contents/${root}/${dir.name}/metadata.json?ref=main`,'GET',undefined,true);if(file){const m=blobJSON(file);results.push({draftId:dir.name,title:String(m.title||'中文作品集模板').slice(0,100),updatedAt:m.updatedAt,editedAt:m.editedAt,status:m.status||'editing',reviewId:m.reviewId||null,submittedAt:m.submittedAt||null,private:true,revision:m.revision});}}
+ const results=[];for(const dir of dirs){if(dir.type!=='dir'||!UUID.test(dir.name))continue;const file=await api(`/contents/${root}/${dir.name}/metadata.json?ref=main`,'GET',undefined,true);if(file){const m=blobJSON(file);results.push({draftId:dir.name,title:String(m.title||'中文作品集模板').slice(0,100),updatedAt:m.updatedAt,editedAt:m.editedAt,status:m.status||'editing',reviewId:m.reviewId||null,submittedAt:m.submittedAt||null,approvedAt:m.approvedAt||null,publication:m.publication||null,private:true,revision:m.revision});}}
  return results;
 }
