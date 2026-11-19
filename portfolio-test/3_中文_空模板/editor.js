@@ -51,7 +51,7 @@ function panel(){const root=$('#panel'),position=root.scrollTop,openedRepeats=[.
  root.innerHTML=`${page!=='home'?`<div class="visibility"><span>在网站中显示${esc(E.pages[page].title)}</span><input type="checkbox" data-tab-toggle ${state.tabs[page]!==false?'checked':''}></div>`:''}`+defs.map(d=>{
   if(state.modules[d.id]===false&&!d.locked)return `<div class="removed"><b>${esc(d.label)} · ${d.shared?'本页已隐藏':'已删除'}</b><button data-restore-module="${d.id}">${d.shared?'恢复本页展示':'撤回删除'}</button></div>`;
   return `<details class="module" data-module="${d.id}" ${opened===d.id?'open':''}><summary><b>${esc(d.label)}</b>${d.locked?'<small>固定模块</small>':`<button data-delete-module="${d.id}">${d.shared?'隐藏本页':'删除模块'}</button>`}</summary><div class="module-content">${d.shared?'<p class="note">内容全站同步；隐藏本页不影响其他页面。简历与“个人标识与简历”共用。</p>':''}${d.fields.map(f=>inputHTML(f,state)).join('')}${d.collections.map(collectionHTML).join('')}</div></details>`;
- }).join('')+`<p class="note">空白内容按原网页结构生成。所有删除均可撤回；作品附件会随保存一同私有保存，供后续人工制作，不会公开。</p>`;
+ }).join('')+`<p class="note">空白内容按原网页结构生成。所有删除均可撤回；作品附件随保存一同保存，上传审核后管理员才能查看。</p>`;
  root.scrollTop=position;for(const id of openedRepeats){const el=root.querySelector('[data-repeat="'+id+'"]');if(el)el.open=true;}
  root.querySelectorAll('details.module').forEach(el=>el.addEventListener('toggle',()=>{if(!el.open)return;const id=el.dataset.module;if(opened===id)return;opened=id;root.querySelectorAll('details.module').forEach(other=>{if(other!==el)other.open=false;});scrollModule(id);el.scrollIntoView({block:'nearest',behavior:'smooth'});}));
 }
@@ -224,7 +224,7 @@ async function saveGitHub({silent=false}={}){
  try{
   const result=await PortfolioGitHub.save(snapshot,message=>button.textContent=message,{silent});copyFileStorage(state,snapshot);
   state.remote={revision:result.revision,savedAt:result.updatedAt,savedUpdated:snapshot.updated,status:result.status||'editing',reviewId:result.reviewId||null};delete state.github;await save();
-  $('#draft-state').textContent=state.updated===snapshot.updated?'编辑中 · 已保存':'编辑中 · 未保存';if(!silent)toast(state.updated===snapshot.updated?'已私有保存，状态为编辑中':'本次内容已保存，后续修改请再次保存');return result;
+  $('#draft-state').textContent=state.updated===snapshot.updated?'编辑中 · 已保存':'编辑中 · 未保存';if(!silent)toast(state.updated===snapshot.updated?'已保存到 GitHub':'本次内容已保存，后续修改请再次保存');return result;
  }catch(error){toast(error.message);}
  finally{publishing=false;$('#reset-template').disabled=false;syncUploadControls();button.textContent='保存';}
 }

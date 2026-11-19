@@ -91,7 +91,7 @@ function login(expectedAccount=null){return new Promise((resolve,reject)=>{
  });}
 function showResult(){
  const output=document.createElement('dialog');output.className='github-dialog';
- output.innerHTML='<h2>已私有保存</h2><p>模板、附件和补充资料已保存，当前状态为“编辑中”。保存不会生成或更新公开网页。</p><button autofocus>继续编辑</button>';
+ output.innerHTML='<h2>已保存</h2><p>模板、附件和补充资料已保存到 GitHub。当前仅你可查看，点击“上传审核”后管理员才能查看。</p><button autofocus>继续编辑</button>';
  output.querySelector('button').onclick=()=>output.close();output.onclose=()=>output.remove();document.body.append(output);output.showModal();
 }
 async function authenticate(expectedAccount=null){
@@ -194,7 +194,7 @@ window.PortfolioGitHub={enterEditor,logout,accountSession,async adminSession(){a
   try{
    await authenticate(owner);const state=await packDraft(draft,progress);progress('正在保存模板…');
    const input={draftId:draft.id,state,baseRevision:draft.remote?.revision||null,requestId:crypto.randomUUID()};
-   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('私有保存尚未完成，请重试');if(!options.silent)showResult();return result;
+   const result=await api('/api/portfolio',input,true);if(!result.saved||!result.private||result.status!=='editing')throw Error('保存尚未完成，请重试');if(!options.silent)showResult();return result;
   }catch(err){if(err.name==='TimeoutError')throw Error('保存等待超时，本机资料仍保留，请稍后再次保存');throw err;}finally{busy=false;}
  }
 };
