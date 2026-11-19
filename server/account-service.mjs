@@ -2,7 +2,6 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename } from 'node:fs/promises';
 import {listSubmittedReviews,submitDraftReview,withdrawDraftReview,readSubmittedReview,downloadSubmittedAsset} from './reviews.mjs';
 import { REPOSITORY } from './save-worker.mjs';
-import { listPortfolios } from './portfolio-save.mjs';
 import {DATA_REPOSITORY,savePrivateDraft,loadPrivateDraft,listPrivateDrafts,uploadDraftAsset,downloadDraftAsset} from './private-drafts.mjs';
 const origin = 'https://lkbdesigner.github.io';
 const hex = n => randomBytes(n).toString('hex');
@@ -81,12 +80,7 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
         }
       }
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
-      if(path==='/api/portfolios'){
-        const [drafts,legacy]=await Promise.all([listPrivateDrafts(account,githubFetch),listPortfolios(account,githubFetch)]);
-        const records=new Map(legacy.map(item=>[item.draftId,{...item,legacy:true}]));
-        for(const draft of drafts){const old=records.get(draft.draftId);records.set(draft.draftId,{...draft,...(old?.url?{legacyUrl:old.url}:{})});}
-        return reply({templates:[...records.values()]});
-      }
+      if(path==='/api/portfolios')return reply({templates:await listPrivateDrafts(account,githubFetch)});
       if(path==='/api/portfolio/submit'||path==='/api/portfolio/withdraw'){
         if(request.method!=='POST')return reply({error:'请求方法不正确'},405);
         if(role==='admin')return reply({error:'管理员请从审核管理查看用户提交'},403);

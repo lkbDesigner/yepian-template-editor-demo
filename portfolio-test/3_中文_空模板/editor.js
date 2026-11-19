@@ -21,7 +21,7 @@ try{
  else if(params.has('new')||!id)state=E.empty();
  else{const restored=await PortfolioDrafts.resolve(id,PortfolioGitHub.accountId);state=restored.state;restoreNotice=restored.notice;}
 }catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';window.PortfolioEditorBoot?.fail(error);return;}
-if(params.has('draft')&&!params.has('new')&&!state){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
+if(params.has('draft')&&!params.has('new')&&!state){if(localStorage.getItem(current)===id)localStorage.removeItem(current);await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?unavailable=1',location.href).href);return;}
 state||=E.empty();if(!reviewView)state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
 if(footerMigration.conflicts)restoreNotice='通用内容已合并，优先沿用首页内容；旧的差异内容仍保留在资料备份中';
