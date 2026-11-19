@@ -54,7 +54,7 @@ async function api(path,body,auth=false){
 }
 async function connect(){
  if(service)return;
- try{const res=await fetch(new URL('save-config.json',templateBase),{cache:'no-store'});const config=await res.json();service=new URL(config.saveServiceUrl).href.replace(/\/$/,'');const status=await fetch(service+'/api/status',{signal:AbortSignal.timeout(15000)});const data=await status.json();if(!status.ok||!data.ready||!data.portfolios)throw Error();}
+ try{const res=await fetch(new URL('save-config.json',templateBase),{cache:'no-store'});const config=await res.json();service=new URL(config.saveServiceUrl).href.replace(/\/$/,'');const status=await fetch(service+'/api/status',{signal:AbortSignal.timeout(15000)});const data=await status.json();if(!status.ok||!data.ready||!data.portfolios)throw Error();document.querySelector('#entry-error')?.remove();}
  catch{service=null;throw Error('本机测试保存服务未连接，请联系管理员启动服务和通道；本机草稿仍保留');}
 }
 function login(expectedAccount=null){return new Promise((resolve,reject)=>{
@@ -90,12 +90,13 @@ async function beginEditing(destination){
   await authenticate();
   const nonce=crypto.randomUUID();sessionStorage.setItem('portfolio-entry:'+nonce,JSON.stringify({token,accountId,phone,expires,at:Date.now()}));
   const url=new URL(destination,location.href);url.searchParams.set('entry',nonce);location.assign(url.href);
- }catch(err){if(!err.cancelled)entryError(err.message);}
+ }catch(err){if(!err.cancelled)entryError(err.message,()=>beginEditing(destination));}
  finally{busy=false;}
 }
-function entryError(message){
+function entryError(message,retry){
  let notice=document.querySelector('#entry-error');if(!notice){notice=document.createElement('p');notice.id='entry-error';notice.setAttribute('role','alert');document.body.append(notice);}
- notice.textContent=message;
+ notice.replaceChildren(document.createTextNode(message));
+ if(retry){const button=document.createElement('button');button.type='button';button.className='entry-retry';button.textContent='重试连接';button.onclick=()=>{notice.remove();service=null;retry();};notice.append(button);}
 }
 function receiveSession(){
  const url=new URL(location.href),nonce=url.searchParams.get('entry');
@@ -126,7 +127,7 @@ async function logout(){
 }
 async function loginOnHome(){
  if(busy)return;busy=true;dialog.dataset.intent='home';dialog.querySelector('h2').textContent='登录账号';
- try{await authenticate();}catch(err){if(!err.cancelled)entryError(err.message);}finally{busy=false;}
+ try{await authenticate();}catch(err){if(!err.cancelled)entryError(err.message,loginOnHome);}finally{busy=false;}
 }
 window.PortfolioGitHub={enterEditor,logout,accountSession,open:beginEditing,async list(){await authenticate();return (await api('/api/portfolios',{},true)).templates;},get accountId(){return accountId;},get phone(){return phone;},async save(draftId,html,title){
  if(busy)throw Error('正在保存，请稍候');busy=true;const owner=editorOwner||accountId;
