@@ -1,6 +1,6 @@
 (async()=>{
 'use strict';
-if(!await PortfolioGitHub.enterEditor())return;
+if(!window.PortfolioEditorBoot?.authorized&&!await PortfolioGitHub.enterEditor())return;
 const E=TemplateEngine,$=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reviewId=new URLSearchParams(location.search).get('review'),reviewView=!!reviewId;let submitting=false,validationIssues=[];
 function locked(){return reviewView||['submitted','reviewing'].includes(state?.remote?.status);}
@@ -19,7 +19,7 @@ try{
  if(reviewView){const record=await PortfolioGitHub.reviewRead(reviewId);state=await PortfolioGitHub.hydrate(record);}
  else if(params.has('new')||!id)state=E.empty();
  else{const restored=await PortfolioDrafts.resolve(id,PortfolioGitHub.accountId);state=restored.state;restoreNotice=restored.notice;}
-}catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';return;}
+}catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';window.PortfolioEditorBoot?.fail(error);return;}
 if(params.has('draft')&&!params.has('new')&&!state){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?missing=1',location.href).href);return;}
 state||=E.empty();if(!reviewView)state.owner=PortfolioGitHub.accountId;
 const footerMigration=E.migrateSharedFooter(state);
@@ -302,5 +302,5 @@ $('#confirm-reset').onclick=async()=>{
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveGitHub();}if(e.key==='Escape')closePalette();});
 addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing||pendingUploads||submitting){e.preventDefault();e.returnValue='';}});
 addEventListener('portfolio-session-ended',async()=>{await save();location.href=new URL('../0.design 首页/index.html',location.href).href;});
-tabs();panel();draw(false);await save();$('#draft-state').textContent=state.remote&&state.updated<=state.remote.savedUpdated?'编辑中 · 已保存':'编辑中 · 未保存';applyMode();if(restoreNotice)toast(restoreNotice);
-})();
+tabs();panel();draw(false);await save();$('#draft-state').textContent=state.remote&&state.updated<=state.remote.savedUpdated?'编辑中 · 已保存':'编辑中 · 未保存';applyMode();if(restoreNotice)toast(restoreNotice);window.PortfolioEditorBoot?.ready();
+})().catch(error=>{window.PortfolioEditorBoot?.fail(error);console.error('Editor initialization failed',error);});
