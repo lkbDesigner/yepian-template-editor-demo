@@ -1,0 +1,10 @@
+import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';
+const source=readFileSync(new URL('../portfolio-test/3_中文_空模板/github-save.js',import.meta.url),'utf8'),start=source.indexOf('async function connect(){'),end=source.indexOf('\nfunction ',start+10);
+function client(fetch){return new Function('fetch','AbortSignal','document','atob',`let service=null,connecting=null;const templateBase=new URL('https://lkbdesigner.github.io/example/');${source.slice(start,end)};return {connect,address:()=>service};`)(fetch,AbortSignal,{querySelector:()=>null},atob);}
+test('stale Pages config falls back to latest public config without exposing a session or replaying writes',async()=>{
+ const calls=[],config=url=>({saveServiceUrl:url}),ready={ready:true,accounts:true,portfolios:true};const c=client(async(url,options)=>{calls.push({url:String(url),options});if(String(url).includes('api.github.com'))return Response.json({content:Buffer.from(JSON.stringify(config('https://new.trycloudflare.com'))).toString('base64')});if(String(url).endsWith('save-config.json'))return Response.json(config('https://old.trycloudflare.com'));if(String(url).startsWith('https://old.'))throw Error('expired');if(String(url).startsWith('https://new.'))return Response.json(ready);throw Error('Unexpected request');});
+ await Promise.all([c.connect(),c.connect()]);assert.equal(c.address(),'https://new.trycloudflare.com');assert.equal(calls.length,4);assert.ok(calls.every(c=>!c.options.headers&&!c.options.body&&!c.options.method));
+});
+test('failed health checks never cache an unusable service and permit later retry',async()=>{
+ let healthy=false;const c=client(async url=>{if(String(url).includes('api.github.com'))throw Error('rate limited');if(String(url).endsWith('save-config.json'))return Response.json({saveServiceUrl:'https://test.trycloudflare.com'});if(!healthy)throw Error('offline');return Response.json({ready:true,accounts:true,portfolios:true});});await assert.rejects(c.connect(),/草稿仍保留/);assert.equal(c.address(),null);healthy=true;await c.connect();assert.equal(c.address(),'https://test.trycloudflare.com');
+});

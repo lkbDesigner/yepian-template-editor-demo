@@ -3,12 +3,15 @@ import { execFileSync } from "node:child_process";
 import { Readable } from "node:stream";
 import { createAccountService } from "./account-service.mjs";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import { ghFetch } from "./gh-transport.mjs";
 
 const account = execFileSync("gh", ["api", "user", "--jq", ".login"], { encoding: "utf8", stdio: ["pipe", "pipe", "pipe"] }).trim();
 if (account.toLowerCase() !== "lkbdesigner") throw new Error("Please sign in to GitHub CLI as lkbDesigner before running the shared save service");
 
-const accountService = createAccountService({directory:fileURLToPath(new URL("../.private/", import.meta.url)),githubFetch:ghFetch,allowedOrigins:["https://lkbdesigner.github.io","http://127.0.0.1:8765","http://localhost:8765"]});
+let accountDirectory=fileURLToPath(new URL("../.private/", import.meta.url));
+try{const installed=JSON.parse(readFileSync(new URL("../.private/runtime-install.json",import.meta.url),"utf8"));if(typeof installed.accountDirectory==="string")accountDirectory=installed.accountDirectory;}catch(error){if(error.code!=="ENOENT")throw error;}
+const accountService = createAccountService({directory:accountDirectory,githubFetch:ghFetch,allowedOrigins:["https://lkbdesigner.github.io","http://127.0.0.1:8765","http://localhost:8765"]});
 const server = createServer(async (incoming, outgoing) => {
   try {
     const hasBody = !["GET", "HEAD"].includes(incoming.method);

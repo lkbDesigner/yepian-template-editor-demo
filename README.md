@@ -37,10 +37,23 @@ templates/<账号随机ID>/<草稿UUID>/
 
 账号仍存放在本机 `.private/accounts.json`，密码为加盐哈希，不进入 GitHub。浏览器只保存最长 8 小时的会话令牌、手机号及到期时间。登录后首页显示手机号和退出登录；各页面、刷新和标签页共享状态。退出编辑保留登录，点击退出登录会注销会话。服务重启需重新登录，账号和草稿保留。
 
+本机测试后台已改用 macOS 用户级 LaunchAgent，独立于聊天和终端运行。安装／更新：
+
 ```sh
-node server/local-server.mjs
-/tmp/cloudflared tunnel --no-autoupdate --protocol http2 --url http://127.0.0.1:8767
+node scripts/install-test-service.mjs
 ```
+
+安装前需将 cloudflared 放在 `.private/bin/cloudflared`，并确保 gh 已登录。安装器把运行代码放入 `~/Library/Application Support/YepianTestService`，避免 Documents 系统权限阻塞；首次复制原账号，更新安装时不覆盖账号。该目录 `.private/accounts.json` 是安装后的账号主存储，源码目录 `.private/runtime-install.json` 让手动启动复用它。全部留在本机，不进入 Git。
+
+LaunchAgent 在用户登录时启动、异常退出后重启；监控 API 和通道健康，失效后重新建立通道，仅通过原子 Git 提交更新两个公开连接配置，保留其他文件。前端在旧配置失效时读取 GitHub 最新配置，避免等待 Pages 缓存刷新；注册、保存、提交审核等写操作不会自动重复发送。
+
+运行状态和日志位于上述安装目录 `.private/runtime/`。维护命令：
+
+```sh
+launchctl print gui/$(id -u)/io.yepian.test-service
+```
+
+此方案仍是本机测试：电脑休眠、关机或断网期间不可用，永久可用需要迁移到常驻后端。
 
 `gh` 需登录 lkbDesigner，具备两个指定仓库的读写权限。通道地址变化后，更新 `site-config.json`、`portfolio-test/3_中文_空模板/save-config.json` 及原始模板的对应配置并发布。电脑、服务、通道和网络需保持运行。
 
