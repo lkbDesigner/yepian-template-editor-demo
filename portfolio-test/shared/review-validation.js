@@ -28,6 +28,8 @@ function validate(state,schema){
  if(state.tabs?.projects===false||!projectDefs.length||projectDefs.every(d=>state.modules?.[d.id]===false))add({page:'projects',module:projectDefs[0]?.id||null,label:'作品集模块',message:'上传审核必须保留并显示作品集模块'});
  let validProject=false;
  for(const def of schema.definitions){
+  // Project details are produced by administrators from the submitted source material.
+  if(def.page.startsWith('case-'))continue;
   if(def.page!=='global'&&state.tabs?.[def.page]===false)continue;if(state.modules?.[def.id]===false&&!def.locked)continue;
   for(const f of def.fields)check(f,state,def);
   for(const cid of def.collections){const c=schema.collections[cid];if(!c)continue;const items=(state.repeats?.[cid]||[]).filter(i=>!i.deleted);
@@ -41,7 +43,6 @@ function validate(state,schema){
      const links=trim(item.links),files=(item.files||[]).filter(file);
      if(!links&&!files.length)add({page:def.page,module:def.id,cid,item:item.id,private:'source',label:'原始资料',message:'请为作品上传原始附件，或填写原始资料链接'});
      if(links&&links.split(/\r?\n/).some(line=>trim(line)&&!/^https?:\/\//i.test(trim(line))||trim(line)&&!url(trim(line))))add({page:def.page,module:def.id,cid,item:item.id,private:'links',label:'原始链接',message:'请填写有效的原始链接，每行一个'});
-     if(t.target&&state.tabs?.[t.target]===false)add({page:t.target,module:null,cid,item:item.id,label:'作品详情页',message:'该作品对应的详情页已隐藏，请恢复显示或删除此作品'});
     }
    }
   }

@@ -4,6 +4,7 @@ if(!window.PortfolioEditorBoot?.authorized&&!await PortfolioGitHub.enterEditor()
 const E=TemplateEngine,$=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const reviewId=new URLSearchParams(location.search).get('review'),reviewView=!!reviewId;let submitting=false,validationIssues=[];
 function locked(){return reviewView||['submitted','reviewing'].includes(state?.remote?.status);}
+function userOwnsPage(id){return !id.startsWith('case-')||PortfolioGitHub.role==='admin';}
 let draftEpoch=0,resetting=false,publishing=false,pendingUploads=0;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
 let locating=false,locateKey=null,locateAfterLoad=null,sharedEditing=null;
 const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current:'+PortfolioGitHub.accountId;
@@ -59,13 +60,13 @@ function panel(){const root=$('#panel'),position=root.scrollTop,openedRepeats=[.
  root.scrollTop=position;for(const id of openedRepeats){const el=root.querySelector('[data-repeat="'+id+'"]');if(el)el.open=true;}
  root.querySelectorAll('details.module').forEach(el=>el.addEventListener('toggle',()=>{if(!el.open)return;const id=el.dataset.module;if(opened===id)return;opened=id;root.querySelectorAll('details.module').forEach(other=>{if(other!==el)other.open=false;});scrollModule(id);el.scrollIntoView({block:'nearest',behavior:'smooth'});}));
 }
-function tabs(){const root=$('#tabs');root.innerHTML=Object.values(E.pages).filter(p=>['home','projects','ai','about'].includes(p.id)).map(p=>`<button type="button" role="tab" data-page="${p.id}" aria-selected="${page===p.id}">${esc(p.title)}</button>`).join('')+`<select id="detail-page" aria-label="编辑详情页"><option value="">选择作品 / AI 文章详情页</option>${Object.values(E.pages).filter(p=>!['home','projects','ai','about'].includes(p.id)).map(p=>`<option value="${p.id}" ${p.id===page?'selected':''}>${esc(p.title)}</option>`).join('')}</select>`;}
+function tabs(){const root=$('#tabs');root.innerHTML=Object.values(E.pages).filter(p=>['home','projects','ai','about'].includes(p.id)).map(p=>`<button type="button" role="tab" data-page="${p.id}" aria-selected="${page===p.id}">${esc(p.title)}</button>`).join('')+`<select id="detail-page" aria-label="编辑详情页"><option value="">${PortfolioGitHub.role==='admin'?'选择作品 / AI 文章详情页':'选择 AI 文章详情页'}</option>${Object.values(E.pages).filter(p=>!['home','projects','ai','about'].includes(p.id)&&userOwnsPage(p.id)).map(p=>`<option value="${p.id}" ${p.id===page?'selected':''}>${esc(p.title)}</option>`).join('')}</select>`;}
 function draw(keep=true){applyMode();ready=false;previewLoad={scroll:keep?scroll:0};frame.srcdoc=E.render(state,page,true,true);}
 function scrollModule(id){// Locate via sandbox-safe messages.
  frame.contentWindow.postMessage({type:'template-locate-module',id},'*');}
 // Structural updates restore the current canvas position; text and colors are patched in place.
 function refresh(){panel();draw();if(locating)locatorUI();}
-function selectPage(id){sharedEditing=null;page=id;opened=E.definitions.find(d=>d.page===page)?.id;scroll=0;selection=null;closePalette();tabs();panel();$('#panel').scrollTop=0;draw(false);}
+function selectPage(id){if(!userOwnsPage(id)){toast('作品详情由管理员根据附件或设计稿链接制作，无需编辑');return;}sharedEditing=null;page=id;opened=E.definitions.find(d=>d.page===page)?.id;scroll=0;selection=null;closePalette();tabs();panel();$('#panel').scrollTop=0;draw(false);}
 // Build a stable, deduplicated traversal from the actual template schema.
 function locateCatalog(){
  const result=[],seen=new Set();
@@ -76,6 +77,7 @@ function locateCatalog(){
   result.push({key,field:f.id,page:owner.page==='global'?'home':owner.page,module:owner.id,item,cid,filled});
  }
  for(const def of E.definitions){
+  if(!userOwnsPage(def.page))continue;
   if(def.page!=='global'&&state.tabs[def.page]===false)continue;
   if(state.modules[def.id]===false&&!def.locked)continue;
   for(const f of def.fields)add(f,state,def);
@@ -158,7 +160,7 @@ function openPalette(el){touch(el);closePalette();const modal=selection.item==='
 }
 function setColor(value){if(!selection)return;const d=dataFor(selection.item);d.colors||={};if(value)d.colors[selection.id]=value;else delete d.colors[selection.id];post({kind:'color',...selection,item:selection.item==='pending'?pending.id:selection.item,value},selection.item==='pending');if(selection.item!=='pending')dirty();const box=$(selection.item==='pending'?'#item-palette':'#palette');const c=value||colorHex(defaults[selection.id]);box.querySelector('.current-color').textContent=c;box.querySelector('input').value=c;}
 function showItem(cid,id){editing={cid,id};pending=structuredClone(state.repeats[cid].find(i=>i.id===id));$('#item-dialog').showModal();paintItem();drawItem();if(locating)locatorUI();}
-function paintItem(){const c=E.collections[editing.cid],t=c.templates[pending.variant%c.templates.length];$('#item-fields').innerHTML=t.fields.map(f=>inputHTML(f,pending,'pending')).join('')+`<hr><h3>制作资料</h3><label class="field"><div class="field-head">原始资料 · 附件或链接至少提供一项（必填）</div><input type="file" multiple data-private-upload></label><div>${pending.files.map((f,i)=>`<p class="file-summary">${esc(f.name)} <button data-download-file="${i}">下载</button> <button data-remove-file="${i}">移除</button></p>`).join('')}</div>${['links','notes','style'].map(k=>`<label class="field"><div class="field-head">${{links:'原始链接（可替代附件，每行一条）',notes:'补充要求（选填）',style:'风格 / 颜色参考（选填）'}[k]}</div><textarea data-private="${k}">${esc(pending[k])}</textarea></label>`).join('')}`;}
+function paintItem(){const c=E.collections[editing.cid],t=c.templates[pending.variant%c.templates.length];$('#item-fields').innerHTML=t.fields.map(f=>inputHTML(f,pending,'pending')).join('')+`<hr><h3>作品详情制作资料</h3><p class="note">上传作品原始附件或提供设计稿链接，管理员将根据这些资料制作详情页。你无需填写作品详情内容。</p><label class="field"><div class="field-head">原始资料 · 附件或链接至少提供一项（必填）</div><input type="file" multiple data-private-upload></label><div>${pending.files.map((f,i)=>`<p class="file-summary">${esc(f.name)} <button data-download-file="${i}">下载</button> <button data-remove-file="${i}">移除</button></p>`).join('')}</div>${['links','notes','style'].map(k=>`<label class="field"><div class="field-head">${{links:'原始链接（可替代附件，每行一条）',notes:'补充要求（选填）',style:'风格 / 颜色参考（选填）'}[k]}</div><textarea data-private="${k}">${esc(pending[k])}</textarea></label>`).join('')}`;}
 function drawItem(){applyMode();const sandbox=structuredClone(state);sandbox.repeats[editing.cid]=[pending];let html=E.render(sandbox,'home',true,true);const d=new DOMParser().parseFromString(html,'text/html');const card=d.querySelector('[data-item="'+pending.id+'"]');const runtime=d.querySelector('body>script');d.body.replaceChildren();if(card)d.body.append(card);if(runtime)d.body.append(runtime);const style=d.createElement('style');style.textContent='body{margin:0;padding:0;background:#101114}.project-card{width:100%!important;height:340px!important;min-height:0!important;border-radius:14px!important;grid-column:auto!important}.project-copy{padding:24px!important;width:100%!important}.project-copy h3{font-size:25px!important;white-space:normal!important}.project-copy p{font-size:13px!important}.client-logo{font-size:14px!important}.meituan-cover-metrics strong{font-size:28px!important}';d.head.append(style);itemFrame.srcdoc='<!doctype html>'+d.documentElement.outerHTML;}
 function closeItem(){pending=null;editing=null;closePalette();$('#item-dialog').close();if(locating)locatorUI();}
 function download(name,body,type){const url=URL.createObjectURL(new Blob(['\uFEFF',body],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}

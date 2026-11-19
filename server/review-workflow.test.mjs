@@ -39,3 +39,10 @@ test('shared contacts and expertise are validated once across tabs, while retain
  assert.equal(validateReviewDraft(state).issues.filter(i=>i.field===entryField.id).length,1);state.repeats[collection.id][0].values[entryField.id]='同一份专业能力';assert.equal(validateReviewDraft(state).valid,true);
  state.modules[home.id]=false;assert.equal(validateReviewDraft(state).valid,true);
 });
+
+test('submission needs project source material and card fields, but no administrator-produced detail fields or visibility',()=>{
+ const state=readyDraft();for(const def of schema.definitions.filter(d=>d.page.startsWith('case-'))){state.tabs[def.page]=true;state.modules[def.id]=true;for(const field of def.fields){state.hidden[field.id]=false;delete state.values[field.id];}}
+ assert.equal(validateReviewDraft(state).valid,true);state.tabs['case-4']=false;assert.equal(validateReviewDraft(state).valid,true);
+ const project=state.repeats.projects[0];project.links='';assert.ok(validateReviewDraft(state).issues.some(i=>i.private==='source'));project.links='https://design.example.com/project';
+ const cover=schema.collections.projects.templates[0].fields.find(f=>f.type==='image');project.hidden[cover.id]=false;assert.ok(validateReviewDraft(state).issues.some(i=>i.field===cover.id));project.hidden[cover.id]=true;assert.equal(validateReviewDraft(state).valid,true);
+});
