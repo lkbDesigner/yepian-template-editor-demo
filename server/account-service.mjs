@@ -58,11 +58,16 @@ export function createAccountService({directory, githubFetch, allowedOrigins=[or
         if(result.error)return reply({error:result.error},result.status);
         const content=result.created||body.template==='chinese-portfolio'?{fields:{},assets:[]}:await load(result.account);
         const token=hex(32),expires=Date.now()+8*3600000;sessions.set(token,{...result.account,phone,expires});
-        return reply({token,siteId:result.account.siteId,phone,expires,...content});
+        return reply({token,siteId:result.account.siteId,phone,expires,role:result.account.role==='admin'?'admin':'user',...content});
       }
       const token=request.headers.get('Authorization')?.replace(/^Bearer /,'');const account=sessions.get(token);
       if(!account||account.expires<Date.now())return reply({error:'请重新输入手机号和密码进入编辑'},401);
-      if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId,phone:account.phone,expires:account.expires});
+      const role=account.role==='admin'?'admin':'user';
+      if(path==='/api/session')return reply({authenticated:true,siteId:account.siteId,phone:account.phone,expires:account.expires,role});
+      if(path.startsWith('/api/admin/')){
+        if(role!=='admin')return reply({error:'只有管理员可以访问审核管理'},403);
+        if(path==='/api/admin/session')return reply({authorized:true,role:'admin'});
+      }
       if(path==='/api/logout'){sessions.delete(token);return reply({ok:true})}
       if(path==='/api/portfolios'){
         const [drafts,legacy]=await Promise.all([listPrivateDrafts(account,githubFetch),listPortfolios(account,githubFetch)]);
