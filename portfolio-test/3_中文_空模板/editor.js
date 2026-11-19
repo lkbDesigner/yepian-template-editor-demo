@@ -2,7 +2,7 @@
 'use strict';
 if(!await PortfolioGitHub.enterEditor())return;
 const E=TemplateEngine,$=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let draftEpoch=0,resetting=false,publishing=false;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
+let draftEpoch=0,resetting=false,publishing=false,pendingUploads=0;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
 let locating=false,locateKey=null,locateAfterLoad=null;
 const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current:'+PortfolioGitHub.accountId;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3000);}
@@ -140,7 +140,8 @@ document.addEventListener('click',e=>{
  if(e.target.closest('[data-locate-exit]'))exitLocator();
 });
 function makeFile(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve({name:file.name,size:file.size,type:file.type,data:r.result});r.onerror=()=>reject(r.error);r.readAsDataURL(file);});}
-async function upload(file,type){if(file.size>(type==='private'?50:10)*1048576)throw Error('文件过大：图片 / 简历 ≤10MB，制作附件 ≤50MB');if(type==='image'&&!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw Error('请选择 PNG、JPG、WebP 或 GIF 图片');if(type==='resume'){const h=await file.slice(0,5).text();if(h!=='%PDF-')throw Error('请选择有效的 PDF 文件');}return makeFile(file);}
+function syncUploadControls(){for(const id of ['#save','#exit','#save-item'])$(id).disabled=!!(pendingUploads||publishing||resetting);}
+async function upload(file,type){pendingUploads++;syncUploadControls();try{if(file.size>(type==='private'?50:10)*1048576)throw Error('文件过大：图片 / 简历 ≤10MB，制作附件 ≤50MB');if(type==='image'&&!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw Error('请选择 PNG、JPG、WebP 或 GIF 图片');if(type==='resume'){const h=await file.slice(0,5).text();if(h!=='%PDF-')throw Error('请选择有效的 PDF 文件');}return await makeFile(file);}finally{pendingUploads--;syncUploadControls();}}
 function touch(el){const f=E.fields[el.dataset.field];if(!f)return;selection=context(el);post({kind:'focus',...selection,item:selection.item==='pending'?pending.id:selection.item,scroll:selection.item!=='pending'},selection.item==='pending');}
 function colorHex(s){if(/^#[0-9a-f]{6}$/i.test(s))return s;const m=s?.match(/[\d.]+/g);return m&&m.length>=3?'#'+m.slice(0,3).map(v=>Math.round(Number(v)).toString(16).padStart(2,'0')).join(''):'#f2f2f5';}
 const paletteColors=['#ffffff','#d1d5db','#9298a5','#4b5563','#1f2937','#000000',...Array.from({length:189},(_,i)=>{const hue=Math.floor(i/9)*360/21,light=92-(i%9)*9;const a=document.createElement('canvas').getContext('2d');a.fillStyle=`hsl(${hue} 72% ${light}%)`;return a.fillStyle;})];
@@ -208,6 +209,7 @@ function copyFileStorage(current,snapshot){
 }
 async function saveGitHub(){
  if(publishing||resetting)return;
+ if(pendingUploads){toast('附件正在读取，请稍候再保存');return;}
  if(pending){toast('请先保存或取消作品资料弹窗');return;}
  if(!await save())return;
  const snapshot=structuredClone(state);publishing=true;const button=$('#save');button.disabled=true;$('#reset-template').disabled=true;$('#exit').disabled=true;button.textContent='正在保存…';
@@ -216,7 +218,7 @@ async function saveGitHub(){
   state.remote={revision:result.revision,savedAt:result.updatedAt,savedUpdated:snapshot.updated,status:'editing'};delete state.github;await save();
   $('#draft-state').textContent=state.updated===snapshot.updated?'编辑中 · 已保存':'编辑中 · 未保存';toast(state.updated===snapshot.updated?'已私有保存，状态为编辑中':'本次内容已保存，后续修改请再次保存');
  }catch(error){toast(error.message);}
- finally{publishing=false;button.disabled=false;$('#reset-template').disabled=false;$('#exit').disabled=false;button.textContent='保存';}
+ finally{publishing=false;$('#reset-template').disabled=false;syncUploadControls();button.textContent='保存';}
 }
 $('#save').onclick=saveGitHub;$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
 $('#exit').onclick=async()=>{if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{location.href='index.html';}}};
@@ -242,11 +244,11 @@ $('#confirm-reset').onclick=async()=>{
   page='home';opened='home-top';tabs();panel();$('#panel').scrollTop=0;draw(false);
   $('#draft-state').textContent='编辑中 · 未保存';$('#status').textContent='已保存到本机';resetDialog.close();toast('已还原为空白模板，编辑和上传内容已清空');
  }catch{ $('#status').textContent='还原失败';$('#reset-error').textContent='还原未完成，原资料仍保留。请重试或先备份。';$('#reset-error').hidden=false;
- }finally{resetting=false;resetDialog.querySelectorAll('button').forEach(b=>b.disabled=false);$('#confirm-reset').textContent='确认还原';}
+ }finally{resetting=false;syncUploadControls();resetDialog.querySelectorAll('button').forEach(b=>b.disabled=false);$('#confirm-reset').textContent='确认还原';}
 };
 
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveGitHub();}if(e.key==='Escape')closePalette();});
-addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing){e.preventDefault();e.returnValue='';}});
+addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing||pendingUploads){e.preventDefault();e.returnValue='';}});
 addEventListener('portfolio-session-ended',async()=>{await save();location.href=new URL('../0.design 首页/index.html',location.href).href;});
 tabs();panel();draw(false);await save();$('#draft-state').textContent=state.remote&&state.updated<=state.remote.savedUpdated?'编辑中 · 已保存':'编辑中 · 未保存';if(restoreNotice)toast(restoreNotice);
 })();
