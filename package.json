@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "fflate": "0.8.2",
     "linkedom": "0.18.15"
   }
 }

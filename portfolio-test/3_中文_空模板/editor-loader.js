@@ -8,7 +8,7 @@ function load(file){return new Promise((resolve,reject)=>{const script=document.
 try{
  timer=setTimeout(()=>fail(Error('模板加载时间较长，请重试；已保存的内容不会丢失')),60000);
  stage('正在验证登录…');if(!window.PortfolioGitHub)throw Error('登录组件未能加载，请重试');if(!await PortfolioGitHub.enterEditor())return;
- PortfolioEditorBoot.authorized=true;stage('正在加载空白模板…');await load('template-source.js?v=light-template-1');await load('template-engine.js?v=prefilled-template-1');if(new URLSearchParams(location.search).get('preset')==='filled')await load('template-prefill.js?v=approval-flow-3');
- stage('正在读取模板内容…');await load('editor.js?v=approval-flow-3');
+ PortfolioEditorBoot.authorized=true;stage('正在加载空白模板…');await load('template-source.js?v=light-template-1');await load('template-engine.js?v=detail-import-1');await load('vendor/fflate.js');await load('detail-import.js?v=detail-import-1');if(new URLSearchParams(location.search).get('preset')==='filled')await load('template-prefill.js?v=approval-flow-3');
+ stage('正在读取模板内容…');await load('editor.js?v=detail-import-1');
 }catch(error){fail(error);}
 })();

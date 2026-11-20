@@ -7,7 +7,7 @@ function locked(){return reviewView?!['submitted','reviewing'].includes(state?.r
 function userOwnsPage(id){return !/^(case-|work-)/.test(id)||PortfolioGitHub.role==='admin';}
 let draftEpoch=0,resetting=false,publishing=false,pendingUploads=0;let queue=[];let db,state,page='home',opened='home-top',scroll=0,timer,toastTimer,selection=null,pending=null,editing=null,ready=false,previewLoad=null,saving=Promise.resolve();const defaults={};
 let locating=false,locateKey=null,locateAfterLoad=null,sharedEditing=null;
-const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261117',current='portfolio-chinese-template-current:'+PortfolioGitHub.accountId;
+const frame=$('#canvas'),itemFrame=$('#item-canvas');const DB='portfolio-chinese-template-20261120-clean',current='portfolio-chinese-template-current-clean:'+PortfolioGitHub.accountId;
 function toast(s){$('#toast').textContent=s;$('#toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),3000);}
 try{db=await new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}catch{toast('浏览器存储不可用，请使用备份资料');}
 async function get(id){if(!db||!id)return null;return new Promise((resolve,reject)=>{let r=db.transaction('drafts').objectStore('drafts').get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
@@ -41,16 +41,18 @@ function inputHTML(f,data,item=null){const attrs=`data-field="${f.id}" ${item?`d
  else control=`<input ${attrs} type="${f.type==='url'?'url':'text'}" value="${esc(v??f.initial??'')}" placeholder="${esc(f.placeholder)}">`;
  return `<div class="field">${title}${control}</div>`;
 }
-function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>`+(cid==='projects'&&page==='home'?state.repeats[cid].filter(i=>!i.deleted).slice(0,4):state.repeats[cid]).map((item,i)=>{
+function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>${cid==='projects'&&reviewView&&!locked()?'<p class="note">AI 详情成品可直接导入 HTML，或导入包含 index.html 和配套图片、CSS、普通脚本的 ZIP（≤10 MB）；请先打包构建项目。导入后点击顶部保存。</p>':''}`+(cid==='projects'&&page==='home'?state.repeats[cid].filter(i=>!i.deleted).slice(0,4):state.repeats[cid]).map((item,i)=>{
  if(item.deleted)return `<div class="removed"><b>${esc(c.label)} ${i+1} · 已删除</b><button data-restore-item="${item.id}" data-cid="${cid}">撤回删除</button></div>`;
  const t=c.templates[item.variant%c.templates.length],title=t.fields.find(f=>f.label==='标题'||f.label==='主标题');
  const label=title?item.values[title.id]||c.label+' '+(i+1):c.label+' '+(i+1);
+ const detailActions=cid==='projects'?`${item.generatedDetail?`<p class="note">作品详情已导入</p><button data-preview-detail="${item.id}">预览作品详情</button>`:''}${reviewView&&!locked()?`<button data-import-detail="${item.id}">${item.generatedDetail?'替换':'导入'}作品详情</button>${item.generatedDetail?`<button data-remove-detail="${item.id}">移除导入详情</button>`:''}`:''}`:'';
  const actions=`<div class="item-actions">${c.project?`<button data-edit="${item.id}" data-cid="${cid}">编辑资料</button>`:'<span></span>'}<button data-delete-item="${item.id}" data-cid="${cid}">删除</button></div>`;
- if(c.project){const cover=t.fields.find(f=>f.type==='image'),image=item.values[cover?.id]?.data;return `<div class="item-row">${image?`<img class="project-manager-cover" src="${esc(image)}" alt="作品封面">`:''}<b>${esc(label)}</b>${actions}</div>`;}
+ if(c.project){const cover=t.fields.find(f=>f.type==='image'),image=item.values[cover?.id]?.data;return `<div class="item-row">${image?`<img class="project-manager-cover" src="${esc(image)}" alt="作品封面">`:''}<b>${esc(label)}</b>${actions}${detailActions}</div>`;}
  return `<details class="item-row" data-repeat="${item.id}"><summary>${esc(label)}</summary><div class="repeat-fields">${t.fields.map(f=>inputHTML(f,item,item.id)).join('')}${actions}</div></details>`;
  }).join('')+(cid==='projects'&&page==='home'?`<p class="note">首页展示作品集中的前 4 个作品，封面与内容同步。</p><button class="add" data-manage-projects>管理全部作品</button>`:`<button class="add" data-add="${cid}">＋ 添加${esc(c.label)}</button>`);}
 function panel(){const root=$('#panel'),position=root.scrollTop,openedRepeats=[...root.querySelectorAll('[data-repeat][open]')].map(e=>e.dataset.repeat);
- const info=pageInfo(),base=info.base||page,data=pageData(),defs=E.definitions.filter(d=>d.page===base||d.page==='global'&&E.pages[base].html.includes('data-module="global"'));
+ const info=pageInfo();if(info.item?.generatedDetail){root.innerHTML=`<section class="module"><div class="module-content"><h3>已导入的作品详情</h3><p class="note">${esc(info.item.generatedDetail.entryName)} · ${((info.item.generatedDetail.file?.size||0)/1048576).toFixed(2)} MB。成品已绑定当前作品，保存后可随审核版本一起发布。</p><button data-preview-detail="${info.item.id}">预览作品详情</button>${reviewView&&!locked()?`<button data-import-detail="${info.item.id}">替换作品详情</button><button data-remove-detail="${info.item.id}">移除导入详情</button>`:''}</div></section>`;return;}
+ const base=info.base||page,data=pageData(),defs=E.definitions.filter(d=>d.page===base||d.page==='global'&&E.pages[base].html.includes('data-module="global"'));
  root.innerHTML=`${page!=='home'?`<div class="visibility"><span>在网站中显示${esc(info.title)}</span><input type="checkbox" data-tab-toggle ${(info.item?data.visible:state.tabs[page])!==false?'checked':''}></div>`:''}`+defs.map(d=>{
   const moduleData=d.page==='global'?state:data;
   if(moduleData.modules[d.id]===false&&!d.locked)return `<div class="removed"><b>${esc(d.label)} · ${d.shared?'本页已隐藏':'已删除'}</b><button data-restore-module="${d.id}">${d.shared?'恢复本页展示':'撤回删除'}</button></div>`;
@@ -181,6 +183,10 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',async e=>{
  const el=e.target;const uploadEpoch=draftEpoch,uploadPending=pending;
+ if(el.id==='import-detail-file'){
+  const item=state.repeats.projects.find(i=>i.id===el.dataset.item&&!i.deleted),file=el.files[0];el.value='';if(!file||!item||!reviewView||locked()||submitting||publishing||pendingUploads)return;
+  const epoch=draftEpoch;pendingUploads++;syncUploadControls();toast('正在打包作品详情…');try{const generated=await PortfolioDetailImport.read(file);if(epoch!==draftEpoch)return;item.generatedDetail={...generated,importedAt:new Date().toISOString()};dirty();selectPage('work-'+item.id);toast('详情已导入并绑定此作品，请点击顶部保存');}catch(error){toast(error.message);}finally{pendingUploads--;syncUploadControls();}return;
+ }
  if(el.matches('#detail-page')){if(el.value)selectPage(el.value);return;}
  if(locked()||submitting)return;
  if(el.matches('[data-tab-toggle]')){if(page.startsWith('work-'))pageData().visible=el.checked;else state.tabs[page]=el.checked;dirty();draw();return;}
@@ -190,6 +196,9 @@ document.addEventListener('change',async e=>{
 });
 document.addEventListener('click',async e=>{
  const b=e.target.closest('button');
+ if(b?.dataset.previewDetail){const html=E.publicHTML(state,'work-'+b.dataset.previewDetail),url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'}));window.open(url,'_blank');setTimeout(()=>URL.revokeObjectURL(url),120000);return;}
+ if(b?.dataset.importDetail){if(!reviewView||locked()||submitting||publishing||pendingUploads)return;const input=$('#import-detail-file');input.dataset.item=b.dataset.importDetail;input.click();return;}
+ if(b?.dataset.removeDetail){if(!reviewView||locked()||submitting||publishing||pendingUploads)return;if(!confirm('移除当前导入的成品？作品封面和用户原始资料会保留。'))return;const item=state.repeats.projects.find(i=>i.id===b.dataset.removeDetail);delete item.generatedDetail;dirty();refresh();return;}
  if(b?.dataset.downloadFile!==undefined){const file=pending?.files?.[Number(b.dataset.downloadFile)];if(!file)return;const label=b.textContent;b.disabled=true;b.textContent='正在下载…';try{if(!file.data&&reviewView&&file.storage)Object.assign(file,await PortfolioGitHub.reviewFile(reviewId,file.storage));if(file.data){const bytes=Uint8Array.from(atob(file.data.split(',')[1]),c=>c.charCodeAt(0)),url=URL.createObjectURL(new Blob([bytes],{type:file.type}));const a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}}catch(error){toast(error.message);}finally{b.disabled=false;b.textContent=label;}return;}
 
  if((locked()||submitting)&&b?.matches('[data-color],[data-delete],[data-restore],[data-delete-module],[data-restore-module],[data-delete-item],[data-restore-item],[data-add],[data-remove-file]'))return;
@@ -249,6 +258,7 @@ function applyMode(){
  $('#save').hidden=readOnly;$('#reset-template').hidden=readOnly||reviewView;$('#submit-review').hidden=readOnly||PortfolioGitHub.role==='admin'||(['approved','published'].includes(state.remote?.status)&&state.updated<=state.remote.savedUpdated);$('#withdraw-review').hidden=reviewView||!['submitted','reviewing'].includes(state.remote?.status);$('#approve-review').hidden=!reviewView;$('#publish-template').hidden=reviewView||PortfolioGitHub.role==='admin';const website=state.remote?.publication?.url;$('#published-link').hidden=!website||reviewView;if(website)$('#published-link').href=website;$('#locate-unedited').hidden=readOnly;$('#locate-unedited').textContent=reviewView?'检查提交资料':'定位未编辑项';$('#save-item').hidden=readOnly;
  document.querySelectorAll('#panel input,#panel textarea,#item-fields input,#item-fields textarea').forEach(el=>{if(el.type==='file'||el.type==='checkbox')el.disabled=freeze;else el.readOnly=freeze;});
  document.querySelectorAll('[data-color],[data-delete],[data-restore],[data-delete-module],[data-restore-module],[data-delete-item],[data-restore-item],[data-add],[data-remove-file]').forEach(el=>{el.hidden=readOnly;el.disabled=freeze;});
+ document.querySelectorAll('[data-import-detail],[data-remove-detail]').forEach(el=>{el.hidden=readOnly||!reviewView;el.disabled=freeze||pendingUploads>0||publishing;});
  document.querySelectorAll('[data-edit]').forEach(el=>{el.textContent=readOnly?'查看资料':'编辑资料';el.disabled=submitting;});
  if(readOnly)$('#draft-state').textContent=reviewView?'审核已完成 · 只读':'审核中';else if(state.updated<=state.remote?.savedUpdated)$('#draft-state').textContent=({approved:'审核通过 · 可发布',published:'已发布',reviewing:'审核编辑中 · 已保存'})[state.remote.status]||'编辑中 · 已保存';if(reviewView)document.querySelector('header h1').firstChild.textContent=readOnly?'查看审核结果 ':'审核并编辑用户模板 ';
  syncUploadControls();
@@ -317,5 +327,6 @@ $('#confirm-reset').onclick=async()=>{
 addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveGitHub();}if(e.key==='Escape')closePalette();});
 addEventListener('beforeunload',e=>{if($('#status').textContent==='正在保存…'||pending||publishing||pendingUploads||submitting){e.preventDefault();e.returnValue='';}});
 addEventListener('portfolio-session-ended',async()=>{await save();location.href=new URL('../0.design 首页/index.html',location.href).href;});
+const detailInput=document.createElement('input');detailInput.type='file';detailInput.id='import-detail-file';detailInput.accept='.html,.htm,.zip';detailInput.hidden=true;document.body.append(detailInput);
 tabs();panel();draw(false);await save();$('#draft-state').textContent=state.remote&&state.updated<=state.remote.savedUpdated?'编辑中 · 已保存':'编辑中 · 未保存';applyMode();if(restoreNotice)toast(restoreNotice);window.PortfolioEditorBoot?.ready();
 })().catch(error=>{window.PortfolioEditorBoot?.fail(error);console.error('Editor initialization failed',error);});
