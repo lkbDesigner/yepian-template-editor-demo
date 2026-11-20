@@ -130,18 +130,17 @@ async function accountSession(){
  receiveSession();await authenticate();return accountId;
 }
 async function enterEditor(){
- let url=new URL(location.href);
+ const url=receiveSession();dialog.dataset.intent='editor';dialog.querySelector('h2').textContent='登录后编辑模板';
  try{
-  url=receiveSession();if(!token)throw Error('需要登录');
-  await connect();const session=await api('/api/session',{},true);storeSession(session);editorOwner=accountId;
+  await authenticate();editorOwner=accountId;
   if(role==='admin'&&url.searchParams.get('from')!=='templates'&&url.searchParams.get('personal')!=='1'&&!url.searchParams.has('review')){location.replace(new URL('../0.design 首页/admin-reviews.html',templateBase).href);return null;}
   document.documentElement.removeAttribute('data-auth-pending');return accountId;
- }catch{
-  const back=new URL('index.html',location.href);back.searchParams.set('edit','1');
-  for(const key of ['draft','new','from','preset'])if(url.searchParams.has(key))back.searchParams.set(key,url.searchParams.get(key));
-  location.replace(back.href);return null;
+ }catch(error){
+  if(error.cancelled){const back=new URL('index.html',location.href);for(const key of ['preset','personal'])if(url.searchParams.has(key))back.searchParams.set(key,url.searchParams.get(key));location.replace(back.href);return null;}
+  throw error;
  }
 }
+
 async function logout(){
  const currentToken=token;clearSession();editorOwner=null;
  if(currentToken){try{await connect();await fetch(service+'/api/logout',{method:'POST',headers:{Authorization:'Bearer '+currentToken},signal:AbortSignal.timeout(5000)});}catch{}}
@@ -228,7 +227,7 @@ addEventListener('storage',e=>{
   dispatchEvent(new Event('portfolio-session-ended'));
  }else verifyDisplayedSession();
 });
-if(new URLSearchParams(location.search).get('personal')==='1')document.querySelectorAll('#portfolio-grid a').forEach(link=>{const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.pathname===new URL('index.html',templateBase).pathname){url.searchParams.set('personal','1');link.href=url.href;}});
+if(new URLSearchParams(location.search).get('personal')==='1')document.querySelectorAll('#portfolio-grid a').forEach(link=>{const url=new URL(link.href,location.href);if(url.origin===location.origin&&[new URL('index.html',templateBase).pathname,new URL('editor.html',templateBase).pathname].includes(url.pathname)){url.searchParams.set('personal','1');if(url.pathname.endsWith('/editor.html'))url.searchParams.set('from','templates');link.href=url.href;}});
 const entry=document.querySelector('.template-edit-entry');
 if(entry){
  if(new URLSearchParams(location.search).get('preset')==='filled'){const filled=new URL(entry.href,location.href);filled.searchParams.set('preset','filled');entry.href=filled.href;}

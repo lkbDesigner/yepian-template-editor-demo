@@ -1,7 +1,7 @@
 (function(root,factory){if(typeof module==='object'&&module.exports)module.exports=factory();else root.PortfolioReviewValidation=factory();})(globalThis,function(){
 'use strict';
-function validate(state,schema,options={}){
- const issues=[],seen=new Set(),sources=new Set();const detailPages=new Set((state.repeats?.projects||[]).filter(i=>!i.deleted).map(i=>schema.collections.projects.templates[i.variant%schema.collections.projects.templates.length]?.target));const trim=v=>typeof v==='string'?v.trim():'';
+function validate(state,schema){
+ const issues=[],seen=new Set(),sources=new Set();const trim=v=>typeof v==='string'?v.trim():'';
  const url=v=>{try{return ['http:','https:','mailto:'].includes(new URL(v).protocol);}catch{return false;}};
  const file=v=>!!v&&v.size>0&&(v.__privateAsset===1||typeof v.data==='string'&&v.data.startsWith('data:'));
  function add(issue){issues.push(issue);}
@@ -47,11 +47,6 @@ function validate(state,schema,options={}){
     }
    }
   }
- }
- if(options.includeProjectDetails)for(const item of (state.repeats?.projects||[]).filter(i=>!i.deleted)){
-  const target=schema.collections.projects.templates[item.variant%schema.collections.projects.templates.length].target,page='work-'+item.id,data=item.detail||{values:state.values,hidden:state.hidden,colors:state.colors,modules:state.modules,visible:state.tabs?.[target]!==false},defs=schema.definitions.filter(d=>d.page===target&&(d.locked||data.modules?.[d.id]!==false));
-  for(const def of defs)for(const f of def.fields)check(f,data,{...def,page},item);
-  const content=defs.flatMap(d=>d.fields).some(f=>!data.hidden?.[f.id]&&(f.type==='image'?file(data.values?.[f.id]):!f.initial&&!!trim(data.values?.[f.id])));if(data.visible===false||!content)add({page,module:defs[0]?.id||null,label:'作品详情',message:'请完成并显示该作品的详情内容后再审核通过'});
  }
 
  if(!validProject)add({page:'projects',module:projectDefs[0]?.id||null,cid:'projects',label:'作品集',message:'作品集不能为空，至少需要一个已填写名称的作品'});

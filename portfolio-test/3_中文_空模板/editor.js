@@ -92,7 +92,7 @@ function locateCatalog(){
    }
   }
  }
- if(PortfolioGitHub.role==='admin')for(const work of E.projectPages(state)){const data=E.detailFor(state,work.item);if(data.visible===false)continue;for(const def of E.definitions.filter(d=>d.page===work.base)){if(data.modules[def.id]===false&&!def.locked)continue;for(const f of def.fields)add(f,data,{...def,page:work.id});}}
+
  const modules=new Map();
  for(const field of result){
   const moduleKey=field.page+':'+field.module;let entry=modules.get(moduleKey);
@@ -246,7 +246,7 @@ $('#save').onclick=()=>saveGitHub();$('#preview').onclick=openPreview;$('#backup
 $('#exit').onclick=async()=>{if(reviewView){if(state.updated>state.remote.savedUpdated&&!confirm('审核修改尚未保存，确定退出吗？'))return;await PortfolioGitHub.open(new URL('../0.design 首页/admin-reviews.html',location.href).href);return;}if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{location.href=params.get('preset')==='filled'?'index.html?preset=filled':'index.html';}}};
 function applyMode(){
  if(!state)return;const readOnly=locked(),freeze=readOnly||submitting;
- $('#save').hidden=readOnly;$('#reset-template').hidden=readOnly||reviewView;$('#submit-review').hidden=readOnly||PortfolioGitHub.role==='admin'||(['approved','published'].includes(state.remote?.status)&&state.updated<=state.remote.savedUpdated);$('#withdraw-review').hidden=reviewView||!['submitted','reviewing'].includes(state.remote?.status);$('#approve-review').hidden=!reviewView;$('#publish-template').hidden=reviewView||PortfolioGitHub.role==='admin';const website=state.remote?.publication?.url;$('#published-link').hidden=!website||reviewView;if(website)$('#published-link').href=website;$('#locate-unedited').hidden=readOnly;$('#save-item').hidden=readOnly;
+ $('#save').hidden=readOnly;$('#reset-template').hidden=readOnly||reviewView;$('#submit-review').hidden=readOnly||PortfolioGitHub.role==='admin'||(['approved','published'].includes(state.remote?.status)&&state.updated<=state.remote.savedUpdated);$('#withdraw-review').hidden=reviewView||!['submitted','reviewing'].includes(state.remote?.status);$('#approve-review').hidden=!reviewView;$('#publish-template').hidden=reviewView||PortfolioGitHub.role==='admin';const website=state.remote?.publication?.url;$('#published-link').hidden=!website||reviewView;if(website)$('#published-link').href=website;$('#locate-unedited').hidden=readOnly;$('#locate-unedited').textContent=reviewView?'检查提交资料':'定位未编辑项';$('#save-item').hidden=readOnly;
  document.querySelectorAll('#panel input,#panel textarea,#item-fields input,#item-fields textarea').forEach(el=>{if(el.type==='file'||el.type==='checkbox')el.disabled=freeze;else el.readOnly=freeze;});
  document.querySelectorAll('[data-color],[data-delete],[data-restore],[data-delete-module],[data-restore-module],[data-delete-item],[data-restore-item],[data-add],[data-remove-file]').forEach(el=>{el.hidden=readOnly;el.disabled=freeze;});
  document.querySelectorAll('[data-edit]').forEach(el=>{el.textContent=readOnly?'查看资料':'编辑资料';el.disabled=submitting;});
@@ -254,7 +254,7 @@ function applyMode(){
  syncUploadControls();
 }
 function showValidation(issues){
- validationIssues=issues;const list=$('#review-validation-list');list.replaceChildren();$('#review-validation-count').textContent='还有 '+issues.length+' 处必填内容未完成。选填的补充要求和风格参考不影响上传。';
+ validationIssues=issues;const list=$('#review-validation-list');list.replaceChildren();$('#review-validation .dialog-head h2').textContent=reviewView?'请检查提交资料':'请完善用户资料';$('#review-validation-count').textContent=reviewView?'提交资料还有 '+issues.length+' 项需要修正。已填写内容直接复用；不要求填完详情样式的占位字段。':'还有 '+issues.length+' 处用户资料未完成。作品详情不属于用户必填内容；选填项不影响提交审核。';$('#locate-review-validation').textContent='定位第一处需修改内容';
  for(const issue of issues.slice(0,12)){const row=document.createElement('p');row.textContent=(pageInfo(issue.page)?.title||'模板')+' · '+issue.label+'：'+issue.message;list.append(row);}
  if(issues.length>12){const row=document.createElement('p');row.textContent='其余 '+(issues.length-12)+' 项可通过“定位未编辑项”逐项处理。';list.append(row);}
  $('#review-validation').showModal();

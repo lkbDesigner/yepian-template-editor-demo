@@ -82,7 +82,7 @@ export async function approveDraftReview(input,owner,administrator,githubFetch){
   if(!record||!review||record.document.workflow?.reviewId!==input.reviewId)fail(409,'审核任务已失效');
   if(record.document.status==='approved'&&record.document.workflow.approvalSourceRevision===input.baseRevision)return {...summary(record.document,record.revision),approved:true};
   if(!['submitted','reviewing'].includes(record.document.status)||!['submitted','reviewing'].includes(review.status)||record.revision!==input.baseRevision)fail(409,'审核版本已变化，请重新打开');
-  const validation=validateReviewDraft(record.document.state,{includeProjectDetails:true});if(!validation.valid)fail(422,'请完善模板和作品详情后再审核通过',{issues:validation.issues});
+  const validation=validateReviewDraft(record.document.state);if(!validation.valid)fail(422,'提交资料仍有必填内容未完成，请检查后再审核通过',{issues:validation.issues});
   const now=new Date().toISOString(),doc={...record.document,status:'approved',savedAt:now,workflow:{...record.document.workflow,approvedAt:now,approvedBy:administrator.siteId,approvalSourceRevision:record.revision}};
   try{return {...await commitWorkflow(api,head,parent,root,doc,{...review,status:'approved',approvedAt:now,approvedBy:administrator.siteId},'Approve portfolio review '+input.reviewId),approved:true};}catch(error){if([409,422].includes(error.upstreamStatus)&&attempt<3)continue;throw error;}
  }

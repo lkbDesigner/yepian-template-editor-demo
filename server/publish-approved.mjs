@@ -9,7 +9,7 @@ export async function publishApprovedDraft(input,owner,githubFetch){
  if(record.revision!==input.baseRevision&&record.document.publicationPending?.sourceRevision!==input.baseRevision)fail(409,'模板版本已更新，请重新打开后发布');
  let review=await jsonAt(api,'reviews/'+record.document.workflow.reviewId+'.json');if(!review||review.status!=='approved'||!/^[a-f0-9]{40}$/.test(review.approvedRevision||''))fail(409,'审核结果已失效');
  const approvedBlob=await api('/git/blobs/'+review.approvedRevision),approved=JSON.parse(Buffer.from(approvedBlob.content.replace(/\s/g,''),'base64').toString());if(approved.ownerId!==owner.siteId||approved.state.id!==input.draftId)fail(403,'无权发布此模板');
- if(!validateReviewDraft(approved.state,{includeProjectDetails:true}).valid)fail(422,'审核内容不完整，不能发布');
+ if(!validateReviewDraft(approved.state).valid)fail(422,'获批资料不完整，不能发布');
  // Persist the publishing lock so a restart cannot allow edits halfway through a release.
  async function ensurePending(){if(record.document.publicationPending)return;
   for(let attempt=0;attempt<4;attempt++){
