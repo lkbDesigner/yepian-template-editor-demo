@@ -51,7 +51,7 @@ async function api(path,body,auth=false){
   service=null;
   // Retry only non-writing authentication operations. Registration and saves
   // may already have reached the server, so never automatically replay them.
-  if(!['/api/start','/api/login','/api/session','/api/portfolios','/api/portfolio/load','/api/portfolio/file'].includes(path))throw connectionError(path);
+  if(!['/api/start','/api/login','/api/session','/api/portfolios','/api/portfolio/load','/api/portfolio/file','/api/admin/session','/api/admin/reviews','/api/admin/review/load','/api/admin/review/file'].includes(path))throw connectionError(path);
   try{await connect();response=await request();}catch{service=null;throw connectionError(path);}
  }
  if(response.status>=500){
@@ -65,13 +65,23 @@ async function api(path,body,auth=false){
 async function connect(){
  if(service)return;if(connecting)return connecting;
  connecting=(async()=>{
-  const tried=new Set();
-  async function verify(config){const address=new URL(config.saveServiceUrl).href.replace(/\/$/,'');if(tried.has(address))throw Error();tried.add(address);const response=await fetch(address+'/api/status',{cache:'no-store',signal:AbortSignal.timeout(10000)});const data=await response.json();if(!response.ok||!data.ready||!data.accounts||!data.portfolios)throw Error();service=address;document.querySelector('#entry-error')?.remove();}
-  try{const response=await fetch(new URL('save-config.json',templateBase),{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error();await verify(await response.json());return;}catch{}
-  // Pages may still cache the previous tunnel while a new build is deploying.
-  // Read only the fixed public configuration; never send account/session data.
-  try{const response=await fetch('https://api.github.com/repos/lkbDesigner/yepian-template-editor-demo/contents/portfolio-test/3_%E4%B8%AD%E6%96%87_%E7%A9%BA%E6%A8%A1%E6%9D%BF/save-config.json?ref=main',{cache:'no-store',signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error();const file=await response.json();await verify(JSON.parse(atob(file.content.replace(/\s/g,''))));return;}catch{}
-  service=null;throw Error('登录与保存服务暂时无法连接，请稍后点击“重试连接”；本机草稿仍保留');
+  const probes=new Map();
+  function verify(config){
+   const url=new URL(config.saveServiceUrl),address=url.href.replace(/\/$/,'');
+   if(url.username||url.password||url.search||url.hash||url.pathname!=='/'||!['https:','http:'].includes(url.protocol)||url.hostname==='api.trycloudflare.com')throw Error('Invalid service address');
+   if(url.protocol==='http:'&&!['localhost','127.0.0.1'].includes(url.hostname))throw Error('Invalid service address');
+   if(!probes.has(address))probes.set(address,(async()=>{const response=await fetch(address+'/api/status',{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(7000)});const data=await response.json();if(!response.ok||!data.ready||!data.accounts||!data.portfolios)throw Error('Service not ready');return address;})());
+   return probes.get(address);
+  }
+  const stamp=Date.now(),path='portfolio-test/3_%E4%B8%AD%E6%96%87_%E7%A9%BA%E6%A8%A1%E6%9D%BF/save-config.json';
+  const local=new URL('save-config.json',templateBase);local.searchParams.set('t',stamp);
+  const sources=[{url:local.href},{url:'https://raw.githubusercontent.com/lkbDesigner/yepian-template-editor-demo/main/'+path+'?t='+stamp},{url:'https://api.github.com/repos/lkbDesigner/yepian-template-editor-demo/contents/'+path+'?ref=main&t='+stamp,encoded:true}];
+  try{
+   // These fixed public config requests carry no account/session data. Race them
+   // so stale Pages caches or one unavailable GitHub endpoint cannot block login.
+   service=await Promise.any(sources.map(async source=>{const response=await fetch(source.url,{cache:'no-store',credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(8000)});if(!response.ok)throw Error('Configuration unavailable');let config=await response.json();if(source.encoded)config=JSON.parse(atob(config.content.replace(/\s/g,'')));return verify(config);}));
+   document.querySelector('#entry-error')?.remove();
+  }catch{service=null;throw Error('登录与保存服务暂时无法连接，请稍后点击“重试连接”；本机草稿仍保留');}
  })();try{return await connecting;}finally{connecting=null;}
 }
 
