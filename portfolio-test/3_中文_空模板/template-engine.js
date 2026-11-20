@@ -16,15 +16,16 @@ function compile(root){
    const slot=a.ownerDocument.createElement('span');slot.className='resume-slot';a.after(slot);
    const f=field(slot,'resume','简历附件');f.link=true;out.push(f);a.dataset.resumeTarget=f.id;a.removeAttribute('href');continue;
   }
-  const id='f'+serial++;a.dataset.link=id;fields[id]={id,type:'url',label:'链接地址',placeholder:'https://…',initial:''};out.push(fields[id]);a.removeAttribute('href');
+  const id='f'+serial++;a.dataset.link=id;fields[id]={id,type:'url',label:'链接地址',placeholder:'https://…',initial:'',sample:href};out.push(fields[id]);a.removeAttribute('href');
  }
  for(const el of [...root.querySelectorAll('.portrait-frame,.life-art,.brand-mark,img')]){
   if(el.closest('[data-list]')||el.parentElement?.closest('.portrait-frame,.life-art,.brand-mark'))continue;
+  const sample=el.tagName==='IMG'?el.getAttribute('src'):el.querySelector('img')?.getAttribute('src');
   const label=el.matches('.brand-mark')?'个人标识':el.matches('.portrait-frame')?'个人照片':'图片';
   el.removeAttribute('aria-label');
   if(el.tagName==='IMG') {el.removeAttribute('srcset');el.removeAttribute('src');el.alt='';el.style.minHeight='120px';}
   else {el.replaceChildren();el.classList.add('blank-image');}
-  out.push(field(el,'image',label,'上传'+label));
+  const f=field(el,'image',label,'上传'+label);f.sample=sample;out.push(f);
  }
  const selector='h1,h2,h3,h4,p,time,.brand-name,.portrait-caption,.brand-track>span,.cover-meta>span,.eyebrow,.client-logo,.stats-grid strong,.stats-grid span,.meituan-cover-metrics strong,.meituan-cover-metrics div>span,.contact-links>a';
  const blocks=[...root.querySelectorAll(selector)].filter(n=>!n.closest('[data-list],.site-nav,svg,.ai-footer-particles')&&!n.closest('[data-field]'));
@@ -39,12 +40,12 @@ function compile(root){
    const original=node.textContent.trim();if(original==='%')continue;const span=block.ownerDocument.createElement('span');node.replaceWith(span);counts[label]=(counts[label]||0)+1;
    const name=label+(counts[label]>1?' · '+counts[label]:'');
    const structural=['h2','h3'].includes(tag)&&(!!block.closest('.section-heading,.compact-heading,.contact-section')||tag==='h2'&&!block.closest('.about-copy,.hero-copy,.cover,.article-heading'));
-   out.push(field(span,tag==='p'?'textarea':'text',name,structural?original:tag==='strong'?'—':name,structural?original:''));
+   const f=field(span,tag==='p'?'textarea':'text',name,structural?original:tag==='strong'?'—':name,structural?original:'');f.sample=original;out.push(f);
   }
  }
  const rest=root.ownerDocument.createTreeWalker(root,NodeFilter.SHOW_TEXT);const textNodes=[];let text;
  while((text=rest.nextNode())){const p=text.parentElement;if(!text.textContent.trim()||p.closest('[data-field],[data-list],svg,style,script,.site-nav,.back,.article-back,.blue-dot,[aria-hidden="true"],.step-number'))continue;if(/^([0-9]{1,2}|[↑↗↘→←+.%·])$/.test(text.textContent.trim()))continue;textNodes.push(text);}
- for(const text of textNodes){const span=root.ownerDocument.createElement('span');text.replaceWith(span);out.push(field(span,'text','说明文字','说明文字'));}
+ for(const text of textNodes){const span=root.ownerDocument.createElement('span');text.replaceWith(span);const f=field(span,'text','说明文字','说明文字');f.sample=text.textContent.trim();out.push(f);}
  return out;
 }
 function makeCollection(container,id,label,itemSelector,project=false){
@@ -53,6 +54,7 @@ function makeCollection(container,id,label,itemSelector,project=false){
  if(id.includes('brands')&&children.length%2===0){const half=children.length/2;if(children.slice(0,half).every((e,i)=>e.textContent===children[i+half].textContent))children=children.slice(0,half);}
  const templates=children.map((el,i)=>{
   el=el.cloneNode(true);el.removeAttribute('id');el.removeAttribute('aria-label');el.classList.remove('reveal');el.dataset.listItem=id;
+  const sampleCover=el.querySelector('img')?.getAttribute('src'),sampleBrand=el.querySelector('.client-logo')?.textContent.trim();
   if(project){
    el.removeAttribute('href');for(const child of [...el.children])if(!child.matches('.project-copy'))child.remove();
    el.querySelectorAll('.client-logo').forEach(n=>{n.replaceChildren(el.ownerDocument.createTextNode('项目 / 品牌'))});
@@ -62,7 +64,7 @@ function makeCollection(container,id,label,itemSelector,project=false){
   const wrapper=el.ownerDocument.createElement('div');wrapper.append(el);
   const fs=compile(wrapper);
   if(id.includes('brands')&&!fs.some(f=>f.type==='text'))fs.push(field(el,'text','品牌名称','品牌名称'));
-  if(project){const slot=el.ownerDocument.createElement('div');slot.className='whole-cover';el.prepend(slot);fs.unshift(field(slot,'image','整张作品封面','上传整张封面'));}
+  if(project){const slot=el.ownerDocument.createElement('div');slot.className='whole-cover';el.prepend(slot);const cover=field(slot,'image','整张作品封面','上传整张封面');cover.sample=sampleCover;fs.unshift(cover);const brand=fs.find(f=>f.label.startsWith('项目 / 品牌'));if(brand&&sampleBrand)brand.sample=sampleBrand;}
   const target=project?'case-'+[1,2,3,4][[...children].indexOf(children[i])]:null;
   return {html:wrapper.innerHTML,fields:fs,target:project?({'project-beike':'case-1','project-wechat':'case-2','project-rednote':'case-3','project-meituan':'case-4'})[[...el.classList].find(c=>['project-beike','project-wechat','project-rednote','project-meituan'].includes(c))] : null};
  });

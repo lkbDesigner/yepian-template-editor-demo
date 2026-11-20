@@ -18,7 +18,7 @@ const params=new URLSearchParams(location.search);const id=params.get('draft')||
 let restoreNotice='';
 try{
  if(reviewView){const record=await PortfolioGitHub.reviewRead(reviewId);state=await PortfolioGitHub.hydrate(record);}
- else if(params.has('new')||!id)state=E.empty();
+ else if(params.has('new')||!id){if(params.get('preset')==='filled'){window.PortfolioEditorBoot?.stage('正在填入完整示例内容…');state=await PortfolioPrefilled.create(E,{baseURL:new URL('.',location.href).href,progress:text=>window.PortfolioEditorBoot?.stage(text)});const validation=PortfolioReviewValidation.validate(state,E);if(!validation.valid)throw Error('示例内容尚未准备完整，请重新加载');}else state=E.empty();}
  else{const restored=await PortfolioDrafts.resolve(id,PortfolioGitHub.accountId);state=restored.state;restoreNotice=restored.notice;}
 }catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';window.PortfolioEditorBoot?.fail(error);return;}
 if(params.has('draft')&&!params.has('new')&&!state){if(localStorage.getItem(current)===id)localStorage.removeItem(current);await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?unavailable=1',location.href).href);return;}
@@ -243,7 +243,7 @@ async function saveGitHub({silent=false}={}){
  finally{publishing=false;$('#reset-template').disabled=false;syncUploadControls();button.textContent='保存';applyMode();}
 }
 $('#save').onclick=()=>saveGitHub();$('#preview').onclick=openPreview;$('#backup').onclick=()=>download('作品集资料备份.json',JSON.stringify(state),'application/json;charset=utf-8');
-$('#exit').onclick=async()=>{if(reviewView){if(state.updated>state.remote.savedUpdated&&!confirm('审核修改尚未保存，确定退出吗？'))return;await PortfolioGitHub.open(new URL('../0.design 首页/admin-reviews.html',location.href).href);return;}if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{location.href='index.html';}}};
+$('#exit').onclick=async()=>{if(reviewView){if(state.updated>state.remote.savedUpdated&&!confirm('审核修改尚未保存，确定退出吗？'))return;await PortfolioGitHub.open(new URL('../0.design 首页/admin-reviews.html',location.href).href);return;}if(await save()){if(new URLSearchParams(location.search).get('from')==='templates'){await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html',location.href).href);}else{location.href=params.get('preset')==='filled'?'index.html?preset=filled':'index.html';}}};
 function applyMode(){
  if(!state)return;const readOnly=locked(),freeze=readOnly||submitting;
  $('#save').hidden=readOnly;$('#reset-template').hidden=readOnly||reviewView;$('#submit-review').hidden=readOnly||PortfolioGitHub.role==='admin'||(['approved','published'].includes(state.remote?.status)&&state.updated<=state.remote.savedUpdated);$('#withdraw-review').hidden=reviewView||!['submitted','reviewing'].includes(state.remote?.status);$('#approve-review').hidden=!reviewView;$('#publish-template').hidden=reviewView||PortfolioGitHub.role==='admin';const website=state.remote?.publication?.url;$('#published-link').hidden=!website||reviewView;if(website)$('#published-link').href=website;$('#locate-unedited').hidden=readOnly;$('#save-item').hidden=readOnly;

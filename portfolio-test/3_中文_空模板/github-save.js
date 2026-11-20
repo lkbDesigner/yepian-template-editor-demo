@@ -138,7 +138,7 @@ async function enterEditor(){
   document.documentElement.removeAttribute('data-auth-pending');return accountId;
  }catch{
   const back=new URL('index.html',location.href);back.searchParams.set('edit','1');
-  for(const key of ['draft','new','from'])if(url.searchParams.has(key))back.searchParams.set(key,url.searchParams.get(key));
+  for(const key of ['draft','new','from','preset'])if(url.searchParams.has(key))back.searchParams.set(key,url.searchParams.get(key));
   location.replace(back.href);return null;
  }
 }
@@ -231,6 +231,7 @@ addEventListener('storage',e=>{
 if(new URLSearchParams(location.search).get('personal')==='1')document.querySelectorAll('#portfolio-grid a').forEach(link=>{const url=new URL(link.href,location.href);if(url.origin===location.origin&&url.pathname===new URL('index.html',templateBase).pathname){url.searchParams.set('personal','1');link.href=url.href;}});
 const entry=document.querySelector('.template-edit-entry');
 if(entry){
+ if(new URLSearchParams(location.search).get('preset')==='filled'){const filled=new URL(entry.href,location.href);filled.searchParams.set('preset','filled');entry.href=filled.href;}
  entry.addEventListener('click',e=>{e.preventDefault();const url=new URL(entry.href,location.href);if(new URLSearchParams(location.search).get('personal')==='1'){url.searchParams.set('personal','1');url.searchParams.set('from','templates');}beginEditing(url.href);});
  const params=new URLSearchParams(location.search);
  if(params.has('edit')){
