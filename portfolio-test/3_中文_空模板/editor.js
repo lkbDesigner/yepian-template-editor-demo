@@ -23,6 +23,7 @@ try{
 }catch(error){toast(error.message);$('#panel').textContent='草稿读取失败，请刷新重试；本机资料没有清空。';window.PortfolioEditorBoot?.fail(error);return;}
 if(params.has('draft')&&!params.has('new')&&!state){if(localStorage.getItem(current)===id)localStorage.removeItem(current);await PortfolioGitHub.open(new URL('../0.design 首页/my-templates.html?unavailable=1',location.href).href);return;}
 state||=E.empty();if(!reviewView)state.owner=PortfolioGitHub.accountId;
+await PortfolioDetailImport.prepare(state);
 const footerMigration=E.migrateSharedFooter(state);
 if(footerMigration.conflicts)restoreNotice='通用内容已合并，优先沿用首页内容；旧的差异内容仍保留在资料备份中';
 params.delete('new');params.set('draft',state.id);history.replaceState(null,'',location.pathname+'?'+params);if(!reviewView)localStorage.setItem(current,state.id);
@@ -41,7 +42,7 @@ function inputHTML(f,data,item=null){const attrs=`data-field="${f.id}" ${item?`d
  else control=`<input ${attrs} type="${f.type==='url'?'url':'text'}" value="${esc(v??f.initial??'')}" placeholder="${esc(f.placeholder)}">`;
  return `<div class="field">${title}${control}</div>`;
 }
-function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>${cid==='projects'&&reviewView&&!locked()?'<p class="note">AI 详情成品可直接导入 HTML，或导入包含 index.html 和配套图片、CSS、普通脚本的 ZIP（≤10 MB）；请先打包构建项目。导入后点击顶部保存。</p>':''}`+(cid==='projects'&&page==='home'?state.repeats[cid].filter(i=>!i.deleted).slice(0,4):state.repeats[cid]).map((item,i)=>{
+function collectionHTML(cid){const c=E.collections[cid];return `<div class="collection-title"><b>${esc(c.label)}</b><span>${state.repeats[cid].filter(i=>!i.deleted).length} 项</span></div>${cid==='projects'&&reviewView&&!locked()?'<p class="note">AI 详情成品可直接导入 自包含 HTML，或包含 index.html 与完整资源文件夹的 ZIP（≤50 MB，解压后≤100 MB）。资源分开保存；缺资源时请上传完整 ZIP。导入后点击顶部保存。</p>':''}`+(cid==='projects'&&page==='home'?state.repeats[cid].filter(i=>!i.deleted).slice(0,4):state.repeats[cid]).map((item,i)=>{
  if(item.deleted)return `<div class="removed"><b>${esc(c.label)} ${i+1} · 已删除</b><button data-restore-item="${item.id}" data-cid="${cid}">撤回删除</button></div>`;
  const t=c.templates[item.variant%c.templates.length],title=t.fields.find(f=>f.label==='标题'||f.label==='主标题');
  const label=title?item.values[title.id]||c.label+' '+(i+1):c.label+' '+(i+1);
@@ -185,7 +186,7 @@ document.addEventListener('change',async e=>{
  const el=e.target;const uploadEpoch=draftEpoch,uploadPending=pending;
  if(el.id==='import-detail-file'){
   const item=state.repeats.projects.find(i=>i.id===el.dataset.item&&!i.deleted),file=el.files[0];el.value='';if(!file||!item||!reviewView||locked()||submitting||publishing||pendingUploads)return;
-  const epoch=draftEpoch;pendingUploads++;syncUploadControls();toast('正在打包作品详情…');try{const generated=await PortfolioDetailImport.read(file);if(epoch!==draftEpoch)return;item.generatedDetail={...generated,importedAt:new Date().toISOString()};dirty();selectPage('work-'+item.id);toast('详情已导入并绑定此作品，请点击顶部保存');}catch(error){toast(error.message);}finally{pendingUploads--;syncUploadControls();}return;
+  const epoch=draftEpoch;pendingUploads++;syncUploadControls();toast('正在检查作品详情和配套资源…');try{const generated=await PortfolioDetailImport.read(file);if(epoch!==draftEpoch)return;const next={...item,generatedDetail:{...generated,importedAt:new Date().toISOString()}};PortfolioDetailImport.prepareItem(next);item.generatedDetail=next.generatedDetail;dirty();selectPage('work-'+item.id);toast('详情已导入并绑定此作品，请点击顶部保存');}catch(error){toast(error.message);}finally{pendingUploads--;syncUploadControls();}return;
  }
  if(el.matches('#detail-page')){if(el.value)selectPage(el.value);return;}
  if(locked()||submitting)return;

@@ -1,3 +1,4 @@
+import{unpackDetailPackage}from'./detail-package.mjs';
 import{privateAPI,documentAt,scope,summary}from'./private-drafts.mjs';import{jsonAt,commitWorkflow}from'./reviews.mjs';import{validateReviewDraft,portfolioSchema}from'./review-validation.mjs';import{renderApprovedWebsite}from'./approved-renderer.mjs';
 const REPO='lkbDesigner/yepian-template-editor-demo',PAGES='https://lkbdesigner.github.io/yepian-template-editor-demo';
 const fail=(status,message)=>{throw Object.assign(Error(message),{status});};
@@ -31,8 +32,21 @@ export async function publishApprovedDraft(input,owner,githubFetch){
    for(const cid of def.collections){const c=portfolioSchema.collections[cid];for(const item of state.repeats[cid]||[]){if(item.deleted)continue;for(const f of c.templates[item.variant%c.templates.length].fields)if(!item.hidden[f.id]&&['image','resume'].includes(f.type))item.values[f.id]=await publicFile(item.values[f.id]);}}
   }
   for(const item of state.repeats.projects||[]){if(item.deleted||item.generatedDetail)continue;const target=portfolioSchema.collections.projects.templates[item.variant%portfolioSchema.collections.projects.templates.length].target,data=item.detail||{values:state.values,hidden:state.hidden,modules:state.modules};for(const def of portfolioSchema.definitions.filter(d=>d.page===target&&(d.locked||data.modules[d.id]!==false)))for(const f of def.fields)if(!data.hidden[f.id]&&['image','resume'].includes(f.type))data.values[f.id]=await publicFile(data.values[f.id]);}
-  // Only an explicitly imported administrator HTML asset becomes a detail page.
-  for(const item of state.repeats.projects||[]){if(item.deleted||!item.generatedDetail)continue;const ref=item.generatedDetail.file;if(ref?.__privateAsset!==1||ref.type!=='text/html'||ref.size>10*1024*1024)fail(422,'作品详情成品格式不正确');const file=await api('/git/blobs/'+ref.sha),data=file.content.replace(/\s/g,'');if(Buffer.from(data,'base64').length!==ref.size)fail(502,'作品详情读取不完整');bytesTotal+=ref.size;if(bytesTotal>100*1024*1024)fail(413,'公开资源合计请控制在 100 MB 内');const path=target+'/releases/'+review.approvedRevision+'/details/'+item.id+'.html',blob=await publicAPI('/git/blobs','POST',{encoding:'base64',content:data});publicAssets.set('detail:'+item.id,{path,mode:'100644',type:'blob',sha:blob.sha});item.generatedDetail={publicUrl:PAGES+'/'+path};}
+  // Publish only administrator-imported detail content. User source attachments
+  // and notes are not part of these archives and never enter the public tree.
+  for(const item of state.repeats.projects||[]){
+   if(item.deleted||!item.generatedDetail)continue;const ref=item.generatedDetail.file;
+   if(ref?.__privateAsset!==1||!['text/html','application/zip'].includes(ref.type)||ref.size>50*1024*1024)fail(422,'作品详情成品格式不正确');
+   const stored=await api('/git/blobs/'+ref.sha),bytes=Buffer.from(stored.content.replace(/\s/g,''),'base64');if(bytes.length!==ref.size)fail(502,'作品详情读取不完整');
+   if(ref.type==='application/zip'){
+    const bundle=unpackDetailPackage(bytes),base=target+'/releases/'+review.approvedRevision+'/details/'+item.id+'/';
+    const files=[...bundle.files.values()];for(const file of files){bytesTotal+=file.bytes.length;if(bytesTotal>100*1024*1024)fail(413,'公开资源合计请控制在 100 MB 内');}
+    for(let i=0;i<files.length;i+=4)await Promise.all(files.slice(i,i+4).map(async file=>{const blob=await publicAPI('/git/blobs','POST',{encoding:'base64',content:Buffer.from(file.bytes).toString('base64')});publicAssets.set('detail:'+item.id+':'+file.path,{path:base+file.path,mode:'100644',type:'blob',sha:blob.sha});}));
+    item.generatedDetail={publicUrl:PAGES+'/'+base+bundle.entry.split('/').map(encodeURIComponent).join('/')};
+   }else{
+    bytesTotal+=ref.size;if(bytesTotal>100*1024*1024)fail(413,'公开资源合计请控制在 100 MB 内');const path=target+'/releases/'+review.approvedRevision+'/details/'+item.id+'.html',blob=await publicAPI('/git/blobs','POST',{encoding:'base64',content:bytes.toString('base64')});publicAssets.set('detail:'+item.id,{path,mode:'100644',type:'blob',sha:blob.sha});item.generatedDetail={publicUrl:PAGES+'/'+path};
+   }
+  }
   const html=renderApprovedWebsite(state);if(Buffer.byteLength(html)>8*1024*1024)fail(413,'公开页面内容过大，请联系管理员');
   receipt={approvedRevision:review.approvedRevision,publishedAt:new Date().toISOString(),url};
   await ensurePending();

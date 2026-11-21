@@ -48,7 +48,7 @@ export function normalizeState(input,account,id){
  }
  const state={};for(const key of ['id','updated','title','values','hidden','colors','modules','tabs','repeats','sharedFooterVersion'])if(input[key]!==undefined)state[key]=walk(input[key]);
  if(!Number.isSafeInteger(state.updated)||state.updated<0)fail(400,'编辑时间不正确');
- for(const item of state.repeats.projects||[]){const d=item.generatedDetail;if(d!==undefined){if(!d||typeof d!=='object'||Object.keys(d).some(k=>!['file','entryName','importedAt'].includes(k))||d.file?.__privateAsset!==1||d.file.type!=='text/html'||d.file.size>10*1024*1024||typeof d.entryName!=='string'||d.entryName.length>255||!Number.isFinite(Date.parse(d.importedAt)))fail(400,'导入的作品详情格式不正确，请管理员重新导入');}}
+ for(const item of state.repeats.projects||[]){const d=item.generatedDetail;if(d!==undefined){if(!d||typeof d!=='object'||Object.keys(d).some(k=>!['file','entryName','importedAt'].includes(k))||d.file?.__privateAsset!==1||!['text/html','application/zip'].includes(d.file.type)||d.file.size>50*1024*1024||typeof d.entryName!=='string'||d.entryName.length>255||!Number.isFinite(Date.parse(d.importedAt)))fail(400,'导入的作品详情格式不正确，请管理员重新导入');}}
  state.owner=account.siteId;if(Buffer.byteLength(JSON.stringify(state))>4*1024*1024)fail(413,'文字及编辑数据合计最多 4 MB');return {state,assets:[...assets.values()]};
 }
 export function summary(doc,revision){return {draftId:doc.state.id,title:doc.state.title||'中文作品集模板',updatedAt:doc.savedAt,editedAt:doc.state.updated,status:doc.status||'editing',reviewId:doc.workflow?.reviewId||null,submittedAt:doc.workflow?.submittedAt||null,approvedAt:doc.workflow?.approvedAt||null,publication:doc.publication||null,private:true,revision};}
