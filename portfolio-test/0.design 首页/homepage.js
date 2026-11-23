@@ -2,6 +2,9 @@
   'use strict';
   const header = document.querySelector('.site-header');
   const menu = document.querySelector('.mobile-menu-toggle');
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const desktop = matchMedia('(min-width: 1001px)');
+  const motionOK = () => !reducedMotion.matches;
   menu.addEventListener('click', () => {
     const open = header.classList.toggle('menu-open');
     menu.setAttribute('aria-expanded', String(open));
@@ -16,6 +19,8 @@
   }
   document.querySelectorAll('.main-nav a').forEach(a => a.addEventListener('click', closeMenu));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+  document.addEventListener('click', e => { if (!header.contains(e.target)) closeMenu(); });
+  matchMedia('(min-width: 701px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
   const search = document.getElementById('gallery-search');
   const cards = [...document.querySelectorAll('.inspiration-item')];
   const more = document.getElementById('gallery-more');
@@ -41,10 +46,171 @@
     renderGallery();
     const next = cards.slice(cards.indexOf(last) + 1).find(c => !c.hidden);
     if (next) next.querySelector('a').focus({ preventScroll: true });
+    if (motionOK()) cards.slice(cards.indexOf(last) + 1).filter(c => !c.hidden).forEach((card, i) => {
+      card.animate([{ opacity: 0, transform: 'translateY(16px)' }, { opacity: 1, transform: 'none' }], {
+        duration: 380, delay: i * 35, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards'
+      });
+    });
   });
   renderGallery();
   document.querySelector('.back-top').addEventListener('click', () => {
     document.querySelector('.brand').focus({ preventScroll: true });
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   });
+
+  // Match the reference's scroll-driven card stack without a rendering library.
+  const hero = document.querySelector('.hero');
+  const featureCards = [...document.querySelectorAll('.feature')];
+  const navLinks = [...document.querySelectorAll('.main-nav a')];
+  const navSections = navLinks.map(a => document.querySelector(a.hash));
+  let scheduled = false;
+  function updateScroll() {
+    scheduled = false;
+    header.classList.toggle('is-scrolled', scrollY > 20);
+    const progress = Math.max(0, Math.min(1, -hero.getBoundingClientRect().top / 650));
+    hero.style.setProperty('--hero-spread', motionOK() ? `${progress * 42}px` : '0px');
+    hero.style.setProperty('--hero-angle', motionOK() ? `${progress * 3}deg` : '0deg');
+    featureCards.forEach((card, i) => {
+      const next = featureCards[i + 1];
+      const top = 106 + i * 9;
+      const overlap = next && desktop.matches && motionOK()
+        ? Math.max(0, Math.min(1, 1 - (next.getBoundingClientRect().top - top) / card.offsetHeight)) : 0;
+      card.style.setProperty('--stack-scale', 1 - overlap * .045);
+      card.style.setProperty('--stack-shade', overlap * .11);
+    });
+    let active = -1;
+    navSections.forEach((section, i) => { if (section.getBoundingClientRect().top <= innerHeight * .4) active = i; });
+    navLinks.forEach((link, i) => {
+      if (i === active) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  function scheduleScroll() { if (!scheduled) { scheduled = true; requestAnimationFrame(updateScroll); } }
+  addEventListener('scroll', scheduleScroll, { passive: true });
+  addEventListener('resize', scheduleScroll, { passive: true });
+  reducedMotion.addEventListener('change', scheduleScroll);
+  updateScroll();
+
+  // Reveal at the point of reading; leave all content visible without JS or IO.
+  if ('IntersectionObserver' in window && motionOK()) {
+    const reveal = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-revealed');
+      reveal.unobserve(entry.target);
+    }), { threshold: .12 });
+    document.querySelectorAll('.section-heading,.feature-copy,.small-feature,.workflow-steps li,.section-top,.experience-copy,.faq-intro').forEach((node, i) => {
+      node.classList.add('scroll-reveal');
+      node.style.setProperty('--reveal-delay', `${node.matches('.small-feature,.workflow-steps li') ? (i % 3) * 70 : 0}ms`);
+      reveal.observe(node);
+    });
+  }
+
+  // One FAQ at a time, with cancelable animations for rapid repeated clicks.
+  const faqs = [...document.querySelectorAll('.faq-item')];
+  const faqAnimations = new WeakMap();
+  function setFaq(item, open) {
+    const summary = item.querySelector('summary');
+    const answer = item.querySelector('.faq-answer');
+    const currentHeight = answer.getBoundingClientRect().height;
+    const previous = faqAnimations.get(item);
+    previous?.cancel();
+    faqAnimations.delete(item);
+    item.dataset.expanded = String(open);
+    summary.setAttribute('aria-expanded', String(open));
+    if (open) item.open = true;
+    if (!motionOK() || !answer.animate) {
+      item.open = open;
+      answer.style.height = '';
+      return;
+    }
+    if (!open && !item.open) return;
+    answer.style.height = 'auto';
+    const targetHeight = open ? answer.scrollHeight : 0;
+    const animation = answer.animate([
+      { height: `${currentHeight}px`, opacity: open ? .25 : 1 },
+      { height: `${targetHeight}px`, opacity: open ? 1 : 0 }
+    ], { duration: 260, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'both' });
+    faqAnimations.set(item, animation);
+    animation.onfinish = () => {
+      if (faqAnimations.get(item) !== animation) return;
+      item.open = open;
+      animation.cancel();
+      answer.style.height = '';
+      faqAnimations.delete(item);
+    };
+  }
+  faqs.forEach(item => {
+    const summary = item.querySelector('summary');
+    summary.setAttribute('aria-expanded', String(item.open));
+    item.dataset.expanded = String(item.open);
+    summary.addEventListener('click', e => {
+      e.preventDefault();
+      const open = item.dataset.expanded !== 'true';
+      if (open) faqs.forEach(other => { if (other !== item && other.dataset.expanded === 'true') setFaq(other, false); });
+      setFaq(item, open);
+    });
+  });
+
+  // A real, keyboard-accessible preview area instead of a static feature image.
+  const tabs = [...document.querySelectorAll('.experience-tabs [role="tab"]')];
+  const phoneLayout = matchMedia('(max-width: 700px)');
+  function syncTabOrientation() {
+    document.querySelector('.experience-tabs').setAttribute('aria-orientation', phoneLayout.matches ? 'horizontal' : 'vertical');
+  }
+  phoneLayout.addEventListener('change', syncTabOrientation);
+  syncTabOrientation();
+  function selectTab(tab) {
+    tabs.forEach(button => {
+      const selected = button === tab;
+      button.setAttribute('aria-selected', String(selected));
+      button.tabIndex = selected ? 0 : -1;
+      const panel = document.getElementById(button.getAttribute('aria-controls'));
+      panel.hidden = !selected;
+      if (selected && motionOK()) panel.animate([
+        { opacity: 0, transform: 'translateY(12px)' }, { opacity: 1, transform: 'none' }
+      ], { duration: 330, easing: 'cubic-bezier(.2,.7,.2,1)' });
+    });
+  }
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', e => {
+      let next;
+      if (['ArrowDown','ArrowRight'].includes(e.key)) next = (index + 1) % tabs.length;
+      if (['ArrowUp','ArrowLeft'].includes(e.key)) next = (index + tabs.length - 1) % tabs.length;
+      if (e.key === 'Home') next = 0;
+      if (e.key === 'End') next = tabs.length - 1;
+      if (next === undefined) return;
+      e.preventDefault(); selectTab(tabs[next]); tabs[next].focus();
+    });
+  });
+  function pressedGroup(button, selector) {
+    document.querySelectorAll(selector).forEach(peer => peer.setAttribute('aria-pressed', String(peer === button)));
+  }
+  document.querySelectorAll('[data-demo-color]').forEach(button => button.addEventListener('click', () => {
+    pressedGroup(button, '[data-demo-color]');
+    document.querySelector('.style-preview').style.setProperty('--demo-accent', button.dataset.demoColor);
+  }));
+  document.querySelectorAll('[data-demo-cover]').forEach(button => button.addEventListener('click', () => {
+    pressedGroup(button, '[data-demo-cover]');
+    const image = document.querySelector('.demo-cover-image');
+    image.src = `assets/homepage/preview-${button.dataset.demoCover}.webp`;
+    image.alt = `当前选择：${button.dataset.coverName}封面`;
+  }));
+  document.querySelectorAll('[data-demo-device]').forEach(button => button.addEventListener('click', () => {
+    pressedGroup(button, '[data-demo-device]');
+    document.querySelector('.demo-viewport').dataset.device = button.dataset.demoDevice;
+  }));
+  const statuses = [
+    ['✎','编辑中','完善个人信息与作品资料，随时保存你的进度。'],
+    ['↗','审核中','已提交项目资料，由管理员制作作品详情并审核。'],
+    ['✓','审核通过','内容已确认，你可以返回“我的模板”主动发布。'],
+    ['◎','已发布','作品集已上线，可以通过链接分享给更多人。']
+  ];
+  document.querySelectorAll('[data-demo-status]').forEach(button => button.addEventListener('click', () => {
+    pressedGroup(button, '[data-demo-status]');
+    const [icon, title, description] = statuses[Number(button.dataset.demoStatus)];
+    document.querySelector('.status-demo-icon').textContent = icon;
+    document.querySelector('.status-demo-title').textContent = title;
+    document.querySelector('.status-demo-description').textContent = description;
+  }));
 })();
