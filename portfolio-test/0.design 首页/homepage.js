@@ -60,9 +60,33 @@
 
   // Match the reference's scroll-driven card stack without a rendering library.
   const hero = document.querySelector('.hero');
+  const heroPlanes = [...hero.querySelectorAll('.hero-preview')];
+  const defaultPlane = hero.querySelector('.hero-preview.center');
+  const heroShowcase = hero.querySelector('.hero-showcase');
+  function activateHeroPlane(plane) {
+    heroPlanes.forEach(item => item.classList.toggle('is-plane-active', item === plane));
+  }
+  heroPlanes.forEach(plane => {
+    plane.addEventListener('pointerenter', event => {
+      if (event.pointerType !== 'touch' && hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
+    });
+    plane.addEventListener('focus', () => {
+      if (hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
+    });
+  });
+  heroShowcase.addEventListener('pointerleave', () => {
+    const focused = heroPlanes.find(plane => plane.contains(document.activeElement));
+    activateHeroPlane(focused || defaultPlane);
+  });
+  heroShowcase.addEventListener('focusout', event => {
+    const next = heroPlanes.find(plane => plane.contains(event.relatedTarget));
+    const hovered = heroPlanes.find(plane => plane.matches(':hover'));
+    activateHeroPlane(next || hovered || defaultPlane);
+  });
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
+    activateHeroPlane(defaultPlane);
     schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
     if (updateUrl) {
       const url = new URL(location.href);
