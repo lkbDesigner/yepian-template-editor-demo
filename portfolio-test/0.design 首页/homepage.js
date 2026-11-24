@@ -60,6 +60,22 @@
 
   // Match the reference's scroll-driven card stack without a rendering library.
   const hero = document.querySelector('.hero');
+  const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
+  function setHeroScheme(glass, updateUrl = false) {
+    hero.dataset.heroStyle = glass ? 'glass' : 'classic';
+    schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
+    if (updateUrl) {
+      const url = new URL(location.href);
+      if (glass) url.searchParams.set('scheme', '2');
+      else url.searchParams.delete('scheme');
+      history.replaceState(history.state, '', url);
+    }
+  }
+  setHeroScheme(new URLSearchParams(location.search).get('scheme') === '2');
+  schemeOptions.forEach(input => input.addEventListener('change', () => {
+    if (input.checked) setHeroScheme(input.value === 'glass', true);
+  }));
+  addEventListener('popstate', () => setHeroScheme(new URLSearchParams(location.search).get('scheme') === '2'));
   const featureCards = [...document.querySelectorAll('.feature')];
   const navLinks = [...document.querySelectorAll('.main-nav a')];
   const navSections = navLinks.map(a => document.querySelector(a.hash));
