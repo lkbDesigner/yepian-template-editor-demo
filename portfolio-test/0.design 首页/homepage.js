@@ -48,13 +48,9 @@
   const secondPlane = hero.querySelector('.hero-preview.right');
   const thirdPlane = hero.querySelector('.hero-preview.left');
   const heroShowcase = hero.querySelector('.hero-showcase');
-  const planeHoverDelay = 120;
-  const planeCooldown = 1180;
-  let lastPlaneHoverPoint = null;
-  let planeSwitchReadyAt = 0;
-  let planeHoverTimer = null;
-  let pendingPlane = null;
-  let pendingPlanePoint = null;
+  let planeHovered = false;
+  const planeHoldTime = 3000;
+  let planeCycleTimer = null;
   const planeMotions = new WeakMap();
   const planeTimings = [
     { duration: 800, delay: 0, arc: -7 },
@@ -94,56 +90,34 @@
     });
   }
   activateHeroPlane(defaultPlane);
-  function cancelPlaneHover() {
-    clearTimeout(planeHoverTimer);
-    planeHoverTimer = null;
-    pendingPlane = null;
-    pendingPlanePoint = null;
+  const planeTravelTime = Math.max(...planeTimings.map(({ duration, delay }) => duration + delay));
+  function schedulePlaneCycle(delay = planeHoldTime) {
+    clearTimeout(planeCycleTimer);
+    planeCycleTimer = null;
+    if (hero.dataset.heroStyle !== 'glass' || planeHovered || document.hidden || !motionOK()) return;
+    planeCycleTimer = setTimeout(() => {
+      const nextPlane = heroPlanes.find(plane => plane.dataset.planeRank === '2');
+      activateHeroPlane(nextPlane);
+      // Give each settled composition three full seconds before rotating again.
+      schedulePlaneCycle(planeTravelTime + planeHoldTime);
+    }, delay);
   }
-  function hoverHeroPlane(plane, event) {
-    if (event.pointerType === 'touch' || hero.dataset.heroStyle !== 'glass' || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
-      cancelPlaneHover(); return;
-    }
-    // Ignore layout-generated enters at a stationary cursor. New intent needs
-    // a small dwell, and changes during the cooldown are discarded, not queued.
-    if (lastPlaneHoverPoint && Math.hypot(event.clientX - lastPlaneHoverPoint.x, event.clientY - lastPlaneHoverPoint.y) < 16) {
-      cancelPlaneHover(); return;
-    }
-    const point = { x: event.clientX, y: event.clientY };
-    if (pendingPlane === plane) { pendingPlanePoint = point; return; }
-    cancelPlaneHover();
-    pendingPlane = plane;
-    pendingPlanePoint = point;
-    planeHoverTimer = setTimeout(() => {
-      const candidate = pendingPlane, hoverPoint = pendingPlanePoint;
-      cancelPlaneHover();
-      if (!candidate || hero.dataset.heroStyle !== 'glass' || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
-      lastPlaneHoverPoint = hoverPoint;
-      planeSwitchReadyAt = performance.now() + planeCooldown;
-      activateHeroPlane(candidate);
-    }, planeHoverDelay);
-  }
-  heroPlanes.forEach(plane => {
-    plane.addEventListener('pointerenter', event => hoverHeroPlane(plane, event));
-    plane.addEventListener('focus', () => {
-      cancelPlaneHover();
-      if (hero.dataset.heroStyle === 'glass' && !plane.classList.contains('is-plane-active')) {
-        planeSwitchReadyAt = performance.now() + planeCooldown;
-        activateHeroPlane(plane);
-      }
-    });
+  heroShowcase.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'touch') return;
+    planeHovered = true;
+    schedulePlaneCycle();
   });
-  heroShowcase.addEventListener('pointermove', event => {
-    const plane = event.target.closest('.hero-preview');
-    if (plane && heroShowcase.contains(plane)) hoverHeroPlane(plane, event);
-    else cancelPlaneHover();
+  heroShowcase.addEventListener('pointerleave', () => {
+    planeHovered = false;
+    schedulePlaneCycle();
   });
-  heroShowcase.addEventListener('pointerleave', () => { cancelPlaneHover(); lastPlaneHoverPoint = null; });
+  document.addEventListener('visibilitychange', () => schedulePlaneCycle());
+  reducedMotion.addEventListener('change', () => schedulePlaneCycle());
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
-    cancelPlaneHover();
     heroPlanes.forEach(plane => planeMotions.get(plane)?.cancel());
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
+    schedulePlaneCycle();
     schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
     if (updateUrl) {
       const url = new URL(location.href);
