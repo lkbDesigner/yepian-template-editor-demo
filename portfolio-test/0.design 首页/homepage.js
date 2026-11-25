@@ -49,7 +49,7 @@
   const thirdPlane = hero.querySelector('.hero-preview.left');
   const heroShowcase = hero.querySelector('.hero-showcase');
   const planeHoverDelay = 120;
-  const planeCooldown = 850;
+  const planeCooldown = 1180;
   let lastPlaneHoverPoint = null;
   let planeSwitchReadyAt = 0;
   let planeHoverTimer = null;
@@ -57,9 +57,9 @@
   let pendingPlanePoint = null;
   const planeMotions = new WeakMap();
   const planeTimings = [
-    { duration: 620, delay: 0, arc: -18 },
-    { duration: 650, delay: 70, arc: -8 },
-    { duration: 680, delay: 130, arc: 12 }
+    { duration: 800, delay: 0, arc: -22 },
+    { duration: 840, delay: 130, arc: -11 },
+    { duration: 880, delay: 250, arc: 15 }
   ];
   const planeOrders = new Map([
     [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
@@ -85,10 +85,10 @@
         // A shallow vertical arc complements the horizontal slot transition:
         // lead first, then follow, then the outgoing card settles at the back.
         const motion = item.animate([
-          { translate: '0px 0px', offset: 0 },
-          { translate: `0px ${arc}px`, offset: .42 },
+          { translate: '0px 0px', offset: 0, easing: 'cubic-bezier(.33,0,.67,1)' },
+          { translate: `0px ${arc}px`, offset: .45, easing: 'cubic-bezier(.33,0,.67,1)' },
           { translate: '0px 0px', offset: 1 }
-        ], { duration: timing.duration, delay: timing.delay, easing: 'cubic-bezier(.22,.7,.2,1)' });
+        ], { duration: timing.duration, delay: timing.delay, easing: 'linear' });
         planeMotions.set(item, motion);
       }
     });

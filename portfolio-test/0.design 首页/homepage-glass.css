@@ -32,13 +32,13 @@
   left:0;
   right:auto;
   border:1px solid #dfe1d9;
-  border-radius:8px;
+  border-radius:24px;
   background:white;
   transform-origin:center;
   translate:0 0;
   transform:translate3d(calc(var(--plane-scene-width) * var(--plane-slot) - 50%),calc(-50% + var(--lift)),0) rotateX(54deg) rotateZ(45deg);
   box-shadow:0 3px 0 #d8dbd2,10px 22px 36px #262e171f;
-  transition:transform var(--plane-duration,650ms) cubic-bezier(.22,.7,.2,1) var(--plane-delay,0ms),box-shadow .35s,background .35s,border-color .35s;
+  transition:transform var(--plane-duration,840ms) cubic-bezier(.22,.65,.28,1) var(--plane-delay,0ms),box-shadow .35s,background .35s,border-color .35s;
   will-change:transform,translate;
   backface-visibility:hidden;
   overflow:hidden;
@@ -51,7 +51,7 @@
 .hero[data-hero-style=glass] .hero-preview[data-plane-rank="3"]{--plane-slot:.70;z-index:1}
 .hero[data-hero-style=glass] .hero-preview .browser-bar{height:25px;background:white;border-bottom:1px solid #ebede6}
 .hero[data-hero-style=glass] .hero-preview .browser-bar span:not(.scheme-two-name){display:none}
-.hero[data-hero-style=glass] .hero-preview .scheme-two-name{display:block;color:#7e8472;font-size:9px;letter-spacing:1px}
+.hero[data-hero-style=glass] .hero-preview .scheme-two-name{display:none;color:#7e8472;font-size:9px;letter-spacing:1px}
 .hero[data-hero-style=glass] .hero-preview .preview-image{position:relative;height:calc(100% - 25px);background:white;overflow:hidden}
 .hero[data-hero-style=glass] .hero-preview .preview-image img{height:100%;width:100%;object-fit:cover;object-position:top;transition:opacity .35s}
 .hero[data-hero-style=glass] .preview-caption{display:none}
@@ -103,7 +103,7 @@
   .scheme-option span{font-size:10px;min-width:49px;padding:6px 8px}
   .scheme-switch{padding:3px}
   .hero[data-hero-style=glass] .hero-showcase{--plane-scene-height:350px;--plane-scene-width:min(520px,100vw);--plane-center-y:calc(var(--plane-scene-height) * .5);width:100%;max-width:520px;left:0;margin-top:40px}
-  .hero[data-hero-style=glass] .hero-preview{width:60%;top:var(--plane-center-y);border-radius:5px;box-shadow:0 2px 0 #d8dbd2,5px 12px 20px #262e171a}
+  .hero[data-hero-style=glass] .hero-preview{width:60%;top:var(--plane-center-y);border-radius:14px;box-shadow:0 2px 0 #d8dbd2,5px 12px 20px #262e171a}
   .hero[data-hero-style=glass] .hero-preview .browser-bar{height:17px}
   .hero[data-hero-style=glass] .hero-preview .preview-image{height:calc(100% - 17px)}
   .hero[data-hero-style=glass] .hero-preview .scheme-two-name{font-size:6px;letter-spacing:.5px}
