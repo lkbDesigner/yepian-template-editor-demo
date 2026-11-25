@@ -35,10 +35,11 @@
   border-radius:8px;
   background:white;
   transform-origin:center;
+  translate:0 0;
   transform:translate3d(calc(var(--plane-scene-width) * var(--plane-slot) - 50%),calc(-50% + var(--lift)),0) rotateX(54deg) rotateZ(45deg);
   box-shadow:0 3px 0 #d8dbd2,10px 22px 36px #262e171f;
-  transition:transform .65s cubic-bezier(.22,.7,.2,1),box-shadow .35s,background .35s,border-color .35s;
-  will-change:transform;
+  transition:transform var(--plane-duration,650ms) cubic-bezier(.22,.7,.2,1) var(--plane-delay,0ms),box-shadow .35s,background .35s,border-color .35s;
+  will-change:transform,translate;
   backface-visibility:hidden;
   overflow:hidden;
 }

@@ -55,6 +55,12 @@
   let planeHoverTimer = null;
   let pendingPlane = null;
   let pendingPlanePoint = null;
+  const planeMotions = new WeakMap();
+  const planeTimings = [
+    { duration: 620, delay: 0, arc: -18 },
+    { duration: 650, delay: 70, arc: -8 },
+    { duration: 680, delay: 130, arc: 12 }
+  ];
   const planeOrders = new Map([
     [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
     [secondPlane, [secondPlane, thirdPlane, defaultPlane]],
@@ -62,9 +68,29 @@
   ]);
   function activateHeroPlane(plane) {
     const order = planeOrders.get(plane);
+    const animate = hero.dataset.heroStyle === 'glass' && motionOK() &&
+      !!defaultPlane.dataset.planeRank && !plane.classList.contains('is-plane-active');
     heroPlanes.forEach(item => {
+      const rank = order.indexOf(item);
+      const timing = planeTimings[rank];
+      planeMotions.get(item)?.cancel();
+      if (animate) {
+        item.style.setProperty('--plane-duration', `${timing.duration}ms`);
+        item.style.setProperty('--plane-delay', `${timing.delay}ms`);
+      }
       item.classList.toggle('is-plane-active', item === plane);
-      item.dataset.planeRank = String(order.indexOf(item) + 1);
+      item.dataset.planeRank = String(rank + 1);
+      if (animate && item.animate) {
+        const arc = timing.arc * Math.min(1, innerWidth / 1000);
+        // A shallow vertical arc complements the horizontal slot transition:
+        // lead first, then follow, then the outgoing card settles at the back.
+        const motion = item.animate([
+          { translate: '0px 0px', offset: 0 },
+          { translate: `0px ${arc}px`, offset: .42 },
+          { translate: '0px 0px', offset: 1 }
+        ], { duration: timing.duration, delay: timing.delay, easing: 'cubic-bezier(.22,.7,.2,1)' });
+        planeMotions.set(item, motion);
+      }
     });
   }
   activateHeroPlane(defaultPlane);
@@ -116,6 +142,7 @@
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
     cancelPlaneHover();
+    heroPlanes.forEach(plane => planeMotions.get(plane)?.cancel());
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
     schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
     if (updateUrl) {
