@@ -1,26 +1,9 @@
 (() => {
   'use strict';
   const header = document.querySelector('.site-header');
-  const menu = document.querySelector('.mobile-menu-toggle');
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const desktop = matchMedia('(min-width: 1001px)');
   const motionOK = () => !reducedMotion.matches;
-  menu.addEventListener('click', () => {
-    const open = header.classList.toggle('menu-open');
-    menu.setAttribute('aria-expanded', String(open));
-    menu.setAttribute('aria-label', open ? '收起导航' : '展开导航');
-    menu.textContent = open ? '×' : '☰';
-  });
-  function closeMenu() {
-    header.classList.remove('menu-open');
-    menu.setAttribute('aria-expanded', 'false');
-    menu.setAttribute('aria-label', '展开导航');
-    menu.textContent = '☰';
-  }
-  document.querySelectorAll('.main-nav a').forEach(a => a.addEventListener('click', closeMenu));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
-  document.addEventListener('click', e => { if (!header.contains(e.target)) closeMenu(); });
-  matchMedia('(min-width: 701px)').addEventListener('change', e => { if (e.matches) closeMenu(); });
   const search = document.getElementById('gallery-search');
   const cards = [...document.querySelectorAll('.inspiration-item')];
   const more = document.getElementById('gallery-more');
@@ -148,8 +131,6 @@
   }));
   addEventListener('popstate', () => setHeroScheme(new URLSearchParams(location.search).get('scheme') === '2'));
   const featureCards = [...document.querySelectorAll('.feature')];
-  const navLinks = [...document.querySelectorAll('.main-nav a')];
-  const navSections = navLinks.map(a => document.querySelector(a.hash));
   let scheduled = false;
   function updateScroll() {
     scheduled = false;
@@ -165,12 +146,7 @@
       card.style.setProperty('--stack-scale', 1 - overlap * .045);
       card.style.setProperty('--stack-shade', overlap * .11);
     });
-    let active = -1;
-    navSections.forEach((section, i) => { if (section.getBoundingClientRect().top <= innerHeight * .4) active = i; });
-    navLinks.forEach((link, i) => {
-      if (i === active) link.setAttribute('aria-current', 'location');
-      else link.removeAttribute('aria-current');
-    });
+
   }
   function scheduleScroll() { if (!scheduled) { scheduled = true; requestAnimationFrame(updateScroll); } }
   addEventListener('scroll', scheduleScroll, { passive: true });

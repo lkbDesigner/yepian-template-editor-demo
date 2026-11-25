@@ -55,30 +55,30 @@
 .hero[data-hero-style=glass] .hero-preview .preview-image img{height:100%;width:100%;object-fit:cover;object-position:top;transition:opacity .35s}
 .hero[data-hero-style=glass] .preview-caption{display:none}
 .hero[data-hero-style=glass] .hero-preview:not(.is-plane-active){
-  background:#ffffff70;
-  border-color:#ffffffe6;
-  box-shadow:0 3px 0 #d8dbd26b,8px 18px 30px #262e1714,inset 0 0 0 1px #ffffff80;
+  background:#ffffff8c;
+  border-color:#fffffff5;
+  box-shadow:0 3px 0 #d8dbd26b,8px 18px 30px #262e1714,inset 0 0 0 1px #ffffffb3,inset 0 10px 22px #ffffff33;
 }
 .hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .browser-bar{background:#ffffffa6}
 .hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .preview-image{position:relative;background:transparent}
-.hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .preview-image img{opacity:.7}
+.hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .preview-image img{opacity:.65}
 .hero[data-hero-style=glass] .hero-preview .preview-image:after{
   content:'';
   position:absolute;
   inset:0;
   pointer-events:none;
-  background:linear-gradient(135deg,#ffffff80,#ffffff38 60%,#ffffff69);
-  backdrop-filter:blur(7px) saturate(.65);
-  -webkit-backdrop-filter:blur(7px) saturate(.65);
+  background:linear-gradient(135deg,#ffffffa6,#f6faff66 60%,#ffffff99);
+  backdrop-filter:blur(14px) saturate(.55);
+  -webkit-backdrop-filter:blur(14px) saturate(.55);
   box-shadow:inset 1px 1px 0 #ffffffb3;
   opacity:0;
   transition:opacity .35s;
 }
 .hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .preview-image:after{opacity:1}
-.hero[data-hero-style=glass] .hero-preview.left:not(.is-plane-active) .preview-image:after{
-  background:linear-gradient(135deg,#ffffffa6,#ffffff59 60%,#ffffff8c);
-  backdrop-filter:blur(11px) saturate(.5);
-  -webkit-backdrop-filter:blur(11px) saturate(.5);
+.hero[data-hero-style=glass] .hero-preview[data-plane-rank="3"]:not(.is-plane-active) .preview-image:after{
+  background:linear-gradient(135deg,#ffffffbf,#f5f9ff80 60%,#ffffffa6);
+  backdrop-filter:blur(20px) saturate(.45);
+  -webkit-backdrop-filter:blur(20px) saturate(.45);
 }
 @media(hover:hover){
   .hero[data-hero-style=glass] .hero-preview:hover{--lift:0px}
@@ -106,8 +106,8 @@
   .hero[data-hero-style=glass] .hero-preview .browser-bar{height:17px}
   .hero[data-hero-style=glass] .hero-preview .preview-image{height:calc(100% - 17px)}
   .hero[data-hero-style=glass] .hero-preview .scheme-two-name{font-size:6px;letter-spacing:.5px}
-  .hero[data-hero-style=glass] .hero-preview.right:not(.is-plane-active) .preview-image:after{backdrop-filter:blur(4px) saturate(.65);-webkit-backdrop-filter:blur(4px) saturate(.65)}
-  .hero[data-hero-style=glass] .hero-preview.left:not(.is-plane-active) .preview-image:after{backdrop-filter:blur(7px) saturate(.5);-webkit-backdrop-filter:blur(7px) saturate(.5)}
+  .hero[data-hero-style=glass] .hero-preview:not(.is-plane-active) .preview-image:after{backdrop-filter:blur(8px) saturate(.55);-webkit-backdrop-filter:blur(8px) saturate(.55)}
+  .hero[data-hero-style=glass] .hero-preview[data-plane-rank="3"]:not(.is-plane-active) .preview-image:after{backdrop-filter:blur(12px) saturate(.45);-webkit-backdrop-filter:blur(12px) saturate(.45)}
 }
 @media(max-width:520px){
   html{scroll-padding-top:125px}
@@ -123,4 +123,12 @@
 @media(prefers-reduced-motion:reduce){
   .hero[data-hero-style=glass] .hero-preview{transition:none}
   .hero[data-hero-style=glass] .hero-preview:hover,.hero[data-hero-style=glass] .hero-preview:focus-visible{--lift:0px}
+}
+
+/* Keep the scheme switch beside the account actions after removing the nav. */
+.header-inner>.scheme-switch{margin-left:auto;margin-right:0}
+.header-inner>.account-nav{margin-left:0}
+@media(max-width:520px){
+  .header-inner{grid-template-columns:auto 1fr}
+  .header-inner>.scheme-switch{margin:0;justify-self:center}
 }
