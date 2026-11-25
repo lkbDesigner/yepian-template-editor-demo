@@ -16,7 +16,7 @@
   --plane-scene-width:min(1120px,100vw);
   --plane-center-y:calc(var(--plane-scene-height) * .52);
   /* Crop the bottom without moving or resizing the original planes. */
-  height:calc(var(--plane-center-y) + var(--plane-scene-width) * .18);
+  height:calc(var(--plane-center-y) + var(--plane-scene-width) * .06);
   clip-path:inset(-80px -100vw 0 -100vw);
   max-width:1120px;
   margin-top:56px;
