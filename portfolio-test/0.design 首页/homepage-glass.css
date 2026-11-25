@@ -137,7 +137,7 @@
 /* One continuous blue grid surface across the header and hero. */
 .site-header,.hero.grid-paper{
   background-image:
-    radial-gradient(ellipse 85% 90% at 49% 35%,#ecf0fa 0%,#ebf1fc 40%,#f2f6fd 75%,#f9fafd 100%);
+    radial-gradient(ellipse 85% 90% at 49% 35%,#f3f5fb 0%,#f2f6fc 40%,#f6f8fc 75%,#fafbfd 100%);
   background-size:100% var(--home-surface-height,1050px);
   background-repeat:no-repeat;
 }
