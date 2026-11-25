@@ -43,6 +43,14 @@
 
   // Match the reference's scroll-driven card stack without a rendering library.
   const hero = document.querySelector('.hero');
+  function syncHeroSurface() {
+    document.body.style.setProperty('--home-header-height', `${header.offsetHeight}px`);
+    document.body.style.setProperty('--home-surface-height', `${header.offsetHeight + hero.offsetHeight}px`);
+  }
+  const heroSurfaceObserver = new ResizeObserver(syncHeroSurface);
+  heroSurfaceObserver.observe(header);
+  heroSurfaceObserver.observe(hero);
+  syncHeroSurface();
   const heroPlanes = [...hero.querySelectorAll('.hero-preview')];
   const defaultPlane = hero.querySelector('.hero-preview.center');
   const secondPlane = hero.querySelector('.hero-preview.right');

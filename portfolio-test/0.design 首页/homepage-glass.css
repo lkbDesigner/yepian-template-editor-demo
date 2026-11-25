@@ -134,12 +134,27 @@
   .header-inner>.scheme-switch{margin:0;justify-self:center}
 }
 
-/* Marina-inspired pale blue glow, confined to the existing hero background. */
-.hero.grid-paper{
+/* One continuous blue grid surface across the header and hero. */
+.site-header,.hero.grid-paper{
   background-image:
     linear-gradient(#7299dc1a 1px,transparent 1px),
     linear-gradient(90deg,#7299dc1a 1px,transparent 1px),
     radial-gradient(ellipse 85% 90% at 49% 35%,#ecf0fa 0%,#ebf1fc 40%,#f2f6fd 75%,#f9fafd 100%);
-  background-size:48px 48px,48px 48px,100% 100%;
+  background-size:48px 48px,48px 48px,100% var(--home-surface-height,1050px);
   background-repeat:repeat,repeat,no-repeat;
+}
+
+.site-header{
+  background-color:#fafaf9;
+  border-bottom-color:transparent;
+  backdrop-filter:none;
+}
+.hero.grid-paper{
+  background-position:0 calc(-1 * var(--home-header-height,83px));
+}
+.site-header.is-scrolled{
+  background-color:#fffffff5;
+  background-image:none;
+  backdrop-filter:blur(16px);
+  box-shadow:0 4px 22px #4779cf14;
 }
