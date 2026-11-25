@@ -43,6 +43,7 @@
 
   // Match the reference's scroll-driven card stack without a rendering library.
   const hero = document.querySelector('.hero');
+  const heroTitle = hero.querySelector('h1');
   function syncHeroSurface() {
     document.body.style.setProperty('--home-header-height', `${header.offsetHeight}px`);
     document.body.style.setProperty('--home-surface-height', `${header.offsetHeight + hero.offsetHeight}px`);
@@ -198,7 +199,7 @@
   let scheduled = false;
   function updateScroll() {
     scheduled = false;
-    header.classList.toggle('is-scrolled', scrollY > 20);
+    header.classList.toggle('is-scrolled', heroTitle.getBoundingClientRect().bottom <= header.offsetHeight);
     const progress = Math.max(0, Math.min(1, -hero.getBoundingClientRect().top / 650));
     hero.style.setProperty('--hero-spread', motionOK() ? `${progress * 42}px` : '0px');
     hero.style.setProperty('--hero-angle', motionOK() ? `${progress * 3}deg` : '0deg');
