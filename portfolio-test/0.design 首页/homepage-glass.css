@@ -42,7 +42,9 @@
 .hero[data-hero-style=glass] .hero-preview.center{left:34%;z-index:3}
 .hero[data-hero-style=glass] .hero-preview.right{left:52%;z-index:2}
 .hero[data-hero-style=glass] .hero-preview.left{display:block;left:70%;z-index:1}
-.hero[data-hero-style=glass] .hero-preview.is-plane-active{z-index:4}
+.hero[data-hero-style=glass] .hero-preview[data-plane-rank="1"]{z-index:3}
+.hero[data-hero-style=glass] .hero-preview[data-plane-rank="2"]{z-index:2}
+.hero[data-hero-style=glass] .hero-preview[data-plane-rank="3"]{z-index:1}
 .hero[data-hero-style=glass] .hero-preview .browser-bar{height:25px;background:white;border-bottom:1px solid #ebede6}
 .hero[data-hero-style=glass] .hero-preview .browser-bar span:not(.scheme-two-name){display:none}
 .hero[data-hero-style=glass] .hero-preview .scheme-two-name{display:block;color:#7e8472;font-size:9px;letter-spacing:1px}

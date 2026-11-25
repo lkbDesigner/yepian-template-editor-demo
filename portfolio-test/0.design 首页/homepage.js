@@ -62,10 +62,21 @@
   const hero = document.querySelector('.hero');
   const heroPlanes = [...hero.querySelectorAll('.hero-preview')];
   const defaultPlane = hero.querySelector('.hero-preview.center');
-  const heroShowcase = hero.querySelector('.hero-showcase');
+  const secondPlane = hero.querySelector('.hero-preview.right');
+  const thirdPlane = hero.querySelector('.hero-preview.left');
+  const planeOrders = new Map([
+    [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
+    [secondPlane, [secondPlane, thirdPlane, defaultPlane]],
+    [thirdPlane, [thirdPlane, secondPlane, defaultPlane]]
+  ]);
   function activateHeroPlane(plane) {
-    heroPlanes.forEach(item => item.classList.toggle('is-plane-active', item === plane));
+    const order = planeOrders.get(plane);
+    heroPlanes.forEach(item => {
+      item.classList.toggle('is-plane-active', item === plane);
+      item.dataset.planeRank = String(order.indexOf(item) + 1);
+    });
   }
+  activateHeroPlane(defaultPlane);
   heroPlanes.forEach(plane => {
     plane.addEventListener('pointerenter', event => {
       if (event.pointerType !== 'touch' && hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
@@ -74,19 +85,9 @@
       if (hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
     });
   });
-  heroShowcase.addEventListener('pointerleave', () => {
-    const focused = heroPlanes.find(plane => plane.contains(document.activeElement));
-    activateHeroPlane(focused || defaultPlane);
-  });
-  heroShowcase.addEventListener('focusout', event => {
-    const next = heroPlanes.find(plane => plane.contains(event.relatedTarget));
-    const hovered = heroPlanes.find(plane => plane.matches(':hover'));
-    activateHeroPlane(next || hovered || defaultPlane);
-  });
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
-    activateHeroPlane(defaultPlane);
     schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
     if (updateUrl) {
       const url = new URL(location.href);
