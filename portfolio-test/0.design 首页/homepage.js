@@ -49,7 +49,14 @@
   const thirdPlane = hero.querySelector('.hero-preview.left');
   const heroShowcase = hero.querySelector('.hero-showcase');
   let planeHovered = false;
-  const planeHoldTime = 3000;
+  const planeHoldTime = 2000;
+  const planeHoverDelay = 120;
+  const planeCooldown = 1180;
+  let lastPlaneHoverPoint = null;
+  let planeSwitchReadyAt = 0;
+  let planeHoverTimer = null;
+  let pendingPlane = null;
+  let pendingPlanePoint = null;
   let planeCycleTimer = null;
   const planeMotions = new WeakMap();
   const planeTimings = [
@@ -66,6 +73,7 @@
     const order = planeOrders.get(plane);
     const animate = hero.dataset.heroStyle === 'glass' && motionOK() &&
       !!defaultPlane.dataset.planeRank && !plane.classList.contains('is-plane-active');
+    if (animate) planeSwitchReadyAt = performance.now() + planeCooldown;
     heroPlanes.forEach(item => {
       const rank = order.indexOf(item);
       const timing = planeTimings[rank];
@@ -90,6 +98,50 @@
     });
   }
   activateHeroPlane(defaultPlane);
+  function cancelPlaneHover() {
+    clearTimeout(planeHoverTimer);
+    planeHoverTimer = null;
+    pendingPlane = null;
+    pendingPlanePoint = null;
+  }
+  function hoverHeroPlane(plane, event) {
+    if (event.pointerType === 'touch' || hero.dataset.heroStyle !== 'glass' || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
+      cancelPlaneHover(); return;
+    }
+    // Ignore layout-generated enters at a stationary cursor. New intent needs
+    // a small dwell, and changes during the cooldown are discarded, not queued.
+    if (lastPlaneHoverPoint && Math.hypot(event.clientX - lastPlaneHoverPoint.x, event.clientY - lastPlaneHoverPoint.y) < 16) {
+      cancelPlaneHover(); return;
+    }
+    const point = { x: event.clientX, y: event.clientY };
+    if (pendingPlane === plane) { pendingPlanePoint = point; return; }
+    cancelPlaneHover();
+    pendingPlane = plane;
+    pendingPlanePoint = point;
+    planeHoverTimer = setTimeout(() => {
+      const candidate = pendingPlane, hoverPoint = pendingPlanePoint;
+      cancelPlaneHover();
+      if (!candidate || hero.dataset.heroStyle !== 'glass' || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
+      lastPlaneHoverPoint = hoverPoint;
+      planeSwitchReadyAt = performance.now() + planeCooldown;
+      activateHeroPlane(candidate);
+    }, planeHoverDelay);
+  }
+  heroPlanes.forEach(plane => {
+    plane.addEventListener('pointerenter', event => hoverHeroPlane(plane, event));
+    plane.addEventListener('focus', () => {
+      cancelPlaneHover();
+      if (hero.dataset.heroStyle === 'glass' && !plane.classList.contains('is-plane-active')) {
+        planeSwitchReadyAt = performance.now() + planeCooldown;
+        activateHeroPlane(plane);
+      }
+    });
+  });
+  heroShowcase.addEventListener('pointermove', event => {
+    const plane = event.target.closest('.hero-preview');
+    if (plane && heroShowcase.contains(plane)) hoverHeroPlane(plane, event);
+    else cancelPlaneHover();
+  });
   const planeTravelTime = Math.max(...planeTimings.map(({ duration, delay }) => duration + delay));
   function schedulePlaneCycle(delay = planeHoldTime) {
     clearTimeout(planeCycleTimer);
@@ -98,7 +150,7 @@
     planeCycleTimer = setTimeout(() => {
       const nextPlane = heroPlanes.find(plane => plane.dataset.planeRank === '2');
       activateHeroPlane(nextPlane);
-      // Give each settled composition three full seconds before rotating again.
+      // Give each settled composition two full seconds before rotating again.
       schedulePlaneCycle(planeTravelTime + planeHoldTime);
     }, delay);
   }
@@ -109,12 +161,15 @@
   });
   heroShowcase.addEventListener('pointerleave', () => {
     planeHovered = false;
-    schedulePlaneCycle();
+    cancelPlaneHover();
+    lastPlaneHoverPoint = null;
+    schedulePlaneCycle(Math.max(0, planeSwitchReadyAt - performance.now()) + planeHoldTime);
   });
   document.addEventListener('visibilitychange', () => schedulePlaneCycle());
   reducedMotion.addEventListener('change', () => schedulePlaneCycle());
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
+    cancelPlaneHover();
     heroPlanes.forEach(plane => planeMotions.get(plane)?.cancel());
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
     schedulePlaneCycle();
