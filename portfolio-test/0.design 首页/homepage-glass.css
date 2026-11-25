@@ -137,8 +137,8 @@
 /* Marina-inspired pale blue glow, confined to the existing hero background. */
 .hero.grid-paper{
   background-image:
-    linear-gradient(#e7e8e5 1px,transparent 1px),
-    linear-gradient(90deg,#e7e8e5 1px,transparent 1px),
+    linear-gradient(#7299dc1a 1px,transparent 1px),
+    linear-gradient(90deg,#7299dc1a 1px,transparent 1px),
     radial-gradient(ellipse 85% 90% at 49% 35%,#ecf0fa 0%,#ebf1fc 40%,#f2f6fd 75%,#f9fafd 100%);
   background-size:48px 48px,48px 48px,100% 100%;
   background-repeat:repeat,repeat,no-repeat;
