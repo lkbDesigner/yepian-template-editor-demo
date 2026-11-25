@@ -57,9 +57,9 @@
   let pendingPlanePoint = null;
   const planeMotions = new WeakMap();
   const planeTimings = [
-    { duration: 800, delay: 0, arc: -22 },
-    { duration: 840, delay: 130, arc: -11 },
-    { duration: 880, delay: 250, arc: 15 }
+    { duration: 800, delay: 0, arc: -7 },
+    { duration: 840, delay: 130, arc: -3 },
+    { duration: 880, delay: 250, arc: 4 }
   ];
   const planeOrders = new Map([
     [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
