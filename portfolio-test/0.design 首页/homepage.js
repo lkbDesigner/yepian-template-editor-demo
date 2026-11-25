@@ -64,6 +64,8 @@
   const defaultPlane = hero.querySelector('.hero-preview.center');
   const secondPlane = hero.querySelector('.hero-preview.right');
   const thirdPlane = hero.querySelector('.hero-preview.left');
+  const heroShowcase = hero.querySelector('.hero-showcase');
+  let lastPlaneHoverPoint = null;
   const planeOrders = new Map([
     [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
     [secondPlane, [secondPlane, thirdPlane, defaultPlane]],
@@ -77,14 +79,25 @@
     });
   }
   activateHeroPlane(defaultPlane);
+  function hoverHeroPlane(plane, event) {
+    if (event.pointerType === 'touch' || hero.dataset.heroStyle !== 'glass' || plane.classList.contains('is-plane-active')) return;
+    // Moving cards can generate pointerenter at a stationary cursor. Only a
+    // fresh pointer movement (or a new visit) may trigger the next rearrangement.
+    if (lastPlaneHoverPoint && Math.hypot(event.clientX - lastPlaneHoverPoint.x, event.clientY - lastPlaneHoverPoint.y) < 16) return;
+    lastPlaneHoverPoint = { x: event.clientX, y: event.clientY };
+    activateHeroPlane(plane);
+  }
   heroPlanes.forEach(plane => {
-    plane.addEventListener('pointerenter', event => {
-      if (event.pointerType !== 'touch' && hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
-    });
+    plane.addEventListener('pointerenter', event => hoverHeroPlane(plane, event));
     plane.addEventListener('focus', () => {
       if (hero.dataset.heroStyle === 'glass') activateHeroPlane(plane);
     });
   });
+  heroShowcase.addEventListener('pointermove', event => {
+    const plane = event.target.closest('.hero-preview');
+    if (plane && heroShowcase.contains(plane)) hoverHeroPlane(plane, event);
+  });
+  heroShowcase.addEventListener('pointerleave', () => { lastPlaneHoverPoint = null; });
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
   function setHeroScheme(glass, updateUrl = false) {
     hero.dataset.heroStyle = glass ? 'glass' : 'classic';
