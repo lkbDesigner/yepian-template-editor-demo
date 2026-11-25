@@ -64,7 +64,7 @@
   const planeOrders = new Map([
     [defaultPlane, [defaultPlane, secondPlane, thirdPlane]],
     [secondPlane, [secondPlane, thirdPlane, defaultPlane]],
-    [thirdPlane, [thirdPlane, secondPlane, defaultPlane]]
+    [thirdPlane, [thirdPlane, defaultPlane, secondPlane]]
   ]);
   function activateHeroPlane(plane) {
     const order = planeOrders.get(plane);
