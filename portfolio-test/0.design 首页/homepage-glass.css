@@ -178,3 +178,6 @@
 }
 .header-inner{position:relative}
 .site-header.is-scrolled::before{opacity:0}
+
+/* Coral accent is limited to the announcement bar. */
+.announcement{--lime:#ff926f}
