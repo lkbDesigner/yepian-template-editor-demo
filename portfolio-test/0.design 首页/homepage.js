@@ -68,6 +68,9 @@
   let pendingPlanePoint = null;
   let planeCycleTimer = null;
   const planeMotions = new WeakMap();
+  let schemeChanging = false;
+  let schemeMotions = [];
+  let schemeRevision = 0;
   const planeTimings = [
     { duration: 800, delay: 0, arc: -7 },
     { duration: 840, delay: 130, arc: -3 },
@@ -114,7 +117,7 @@
     pendingPlanePoint = null;
   }
   function hoverHeroPlane(plane, event) {
-    if (event.pointerType === 'touch' || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
+    if (event.pointerType === 'touch' || schemeChanging || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
       cancelPlaneHover(); return;
     }
     // Ignore layout-generated enters at a stationary cursor. New intent needs
@@ -130,7 +133,7 @@
     planeHoverTimer = setTimeout(() => {
       const candidate = pendingPlane, hoverPoint = pendingPlanePoint;
       cancelPlaneHover();
-      if (!candidate || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
+      if (!candidate || schemeChanging || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
       lastPlaneHoverPoint = hoverPoint;
       planeSwitchReadyAt = performance.now() + planeCooldown;
       activateHeroPlane(candidate);
@@ -140,7 +143,7 @@
     plane.addEventListener('pointerenter', event => hoverHeroPlane(plane, event));
     plane.addEventListener('focus', () => {
       cancelPlaneHover();
-      if (!plane.classList.contains('is-plane-active')) {
+      if (!schemeChanging && !plane.classList.contains('is-plane-active')) {
         planeSwitchReadyAt = performance.now() + planeCooldown;
         activateHeroPlane(plane);
       }
@@ -155,7 +158,7 @@
   function schedulePlaneCycle(delay = planeHoldTime) {
     clearTimeout(planeCycleTimer);
     planeCycleTimer = null;
-    if (planeHovered || document.hidden || !motionOK()) return;
+    if (schemeChanging || planeHovered || document.hidden || !motionOK()) return;
     planeCycleTimer = setTimeout(() => {
       const nextPlane = heroPlanes.find(plane => plane.dataset.planeRank === '2');
       activateHeroPlane(nextPlane);
@@ -177,17 +180,60 @@
   document.addEventListener('visibilitychange', () => schedulePlaneCycle());
   reducedMotion.addEventListener('change', () => schedulePlaneCycle());
   const schemeOptions = [...document.querySelectorAll('[name="hero-scheme"]')];
+  function snapshotSchemeCard(plane) {
+    const style = getComputedStyle(plane);
+    return Object.fromEntries(['width', 'height', 'left', 'top', 'transform', 'transformOrigin', 'translate']
+      .map(property => [property, style[property]]));
+  }
+  function snapshotSchemeScene() {
+    const style = getComputedStyle(heroShowcase);
+    return Object.fromEntries(['width', 'height', 'left', 'marginTop', 'clipPath']
+      .map(property => [property, style[property]]));
+  }
   function setHeroScheme(glass, updateUrl = false) {
+    const nextStyle = glass ? 'glass' : 'classic';
+    const changed = hero.dataset.heroStyle !== nextStyle;
+    const animate = changed && !!hero.dataset.heroStyle && motionOK();
+    // Capture the rendered state before cancelling any in-flight card or scheme motion.
+    const previousCards = animate ? heroPlanes.map(snapshotSchemeCard) : null;
+    const previousScene = animate ? snapshotSchemeScene() : null;
+    const revision = ++schemeRevision;
     cancelPlaneHover();
+    clearTimeout(planeCycleTimer);
+    schemeMotions.forEach(motion => motion.cancel());
+    schemeMotions = [];
     heroPlanes.forEach(plane => planeMotions.get(plane)?.cancel());
-    hero.dataset.heroStyle = glass ? 'glass' : 'classic';
-    schedulePlaneCycle();
-    schemeOptions.forEach(input => { input.checked = input.value === (glass ? 'glass' : 'classic'); });
+    schemeChanging = animate;
+    hero.classList.toggle('is-scheme-switching', animate);
+    hero.dataset.heroStyle = nextStyle;
+    schemeOptions.forEach(input => { input.checked = input.value === nextStyle; });
     if (updateUrl) {
       const url = new URL(location.href);
       if (glass) url.searchParams.set('scheme', '2');
       else url.searchParams.delete('scheme');
       history.replaceState(history.state, '', url);
+    }
+    if (animate) {
+      // Layout, size, origin and angle travel together on one shared timeline.
+      // Scheme changes never inherit the stagger used by portfolio rotation.
+      const targetCards = heroPlanes.map(snapshotSchemeCard);
+      const targetScene = snapshotSchemeScene();
+      const timing = { duration: 850, easing: 'cubic-bezier(.22,.65,.28,1)' };
+      schemeMotions = [
+        heroShowcase.animate([previousScene, targetScene], timing),
+        ...heroPlanes.map((plane, index) => plane.animate([previousCards[index], targetCards[index]], timing))
+      ];
+      Promise.allSettled(schemeMotions.map(motion => motion.finished)).then(() => {
+        if (revision !== schemeRevision) return;
+        schemeMotions = [];
+        schemeChanging = false;
+        hero.classList.remove('is-scheme-switching');
+        planeSwitchReadyAt = performance.now() + planeHoverDelay;
+        lastPlaneHoverPoint = null;
+        schedulePlaneCycle();
+      });
+    } else {
+      schedulePlaneCycle();
     }
   }
   setHeroScheme(new URLSearchParams(location.search).get('scheme') === '2');

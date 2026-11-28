@@ -232,3 +232,6 @@
 @media(prefers-reduced-motion:reduce){
   .hero[data-hero-style=classic] .hero-preview{transition:none}
 }
+
+/* Scheme transitions animate layout and transforms together, without card stagger. */
+.hero.is-scheme-switching .hero-preview{transition:none!important}
