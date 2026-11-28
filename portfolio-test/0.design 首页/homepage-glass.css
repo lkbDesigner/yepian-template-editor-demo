@@ -181,3 +181,6 @@
 
 /* Yellow accent is limited to the announcement bar. */
 .announcement{--lime:#ffe34d}
+
+/* Match only the main hero title underline to the announcement yellow. */
+.hero h1 .highlight:after{background:#ffe34d}
