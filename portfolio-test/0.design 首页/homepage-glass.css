@@ -179,5 +179,5 @@
 .header-inner{position:relative}
 .site-header.is-scrolled::before{opacity:0}
 
-/* Purple accent is limited to the announcement bar. */
-.announcement{--lime:#a994ff}
+/* Yellow accent is limited to the announcement bar. */
+.announcement{--lime:#ffd166}
