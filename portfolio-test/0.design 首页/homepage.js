@@ -80,7 +80,7 @@
   ]);
   function activateHeroPlane(plane) {
     const order = planeOrders.get(plane);
-    const animate = hero.dataset.heroStyle === 'glass' && motionOK() &&
+    const animate = motionOK() &&
       !!defaultPlane.dataset.planeRank && !plane.classList.contains('is-plane-active');
     if (animate) planeSwitchReadyAt = performance.now() + planeCooldown;
     heroPlanes.forEach(item => {
@@ -114,7 +114,7 @@
     pendingPlanePoint = null;
   }
   function hoverHeroPlane(plane, event) {
-    if (event.pointerType === 'touch' || hero.dataset.heroStyle !== 'glass' || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
+    if (event.pointerType === 'touch' || plane.classList.contains('is-plane-active') || performance.now() < planeSwitchReadyAt) {
       cancelPlaneHover(); return;
     }
     // Ignore layout-generated enters at a stationary cursor. New intent needs
@@ -130,7 +130,7 @@
     planeHoverTimer = setTimeout(() => {
       const candidate = pendingPlane, hoverPoint = pendingPlanePoint;
       cancelPlaneHover();
-      if (!candidate || hero.dataset.heroStyle !== 'glass' || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
+      if (!candidate || !candidate.matches(':hover') || performance.now() < planeSwitchReadyAt) return;
       lastPlaneHoverPoint = hoverPoint;
       planeSwitchReadyAt = performance.now() + planeCooldown;
       activateHeroPlane(candidate);
@@ -140,7 +140,7 @@
     plane.addEventListener('pointerenter', event => hoverHeroPlane(plane, event));
     plane.addEventListener('focus', () => {
       cancelPlaneHover();
-      if (hero.dataset.heroStyle === 'glass' && !plane.classList.contains('is-plane-active')) {
+      if (!plane.classList.contains('is-plane-active')) {
         planeSwitchReadyAt = performance.now() + planeCooldown;
         activateHeroPlane(plane);
       }
@@ -155,7 +155,7 @@
   function schedulePlaneCycle(delay = planeHoldTime) {
     clearTimeout(planeCycleTimer);
     planeCycleTimer = null;
-    if (hero.dataset.heroStyle !== 'glass' || planeHovered || document.hidden || !motionOK()) return;
+    if (planeHovered || document.hidden || !motionOK()) return;
     planeCycleTimer = setTimeout(() => {
       const nextPlane = heroPlanes.find(plane => plane.dataset.planeRank === '2');
       activateHeroPlane(nextPlane);
